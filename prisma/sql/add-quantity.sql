@@ -1,0 +1,1 @@
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "quantity" integer NOT NULL DEFAULT 0;

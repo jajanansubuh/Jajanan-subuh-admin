@@ -1,0 +1,38 @@
+{
+  "name": "Ndhv Base",
+  "short_name": "Ndhv Base",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "Aplikasi admin jajanan subuh",
+  "icons": [
+    {
+      "src": "/ndhvbase-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/ndhvbase-logo.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ndhvbase-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Buka Admin",
+      "short_name": "Ndhv Base",
+      "description": "Buka panel admin",
+      "url": "/",
+      "icons": [{ "src": "/ndhvbase-logo-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
