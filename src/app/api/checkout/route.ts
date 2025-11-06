@@ -467,8 +467,9 @@ export async function POST(req: Request) {
       // create the order (orderData may include orderNumber)
       const createData = orderData as unknown as OrderUncheckedCreateInputLocal;
       // adapt createData to the tx.order.create parameter type without importing Prisma types
-      // Note: cast to any to avoid complex type extraction; createData is validated shape above
-      const createArg = createData as any;
+  // Cast createData to the generated Prisma unchecked input type which matches nested createMany
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- validated shape above, narrow typing would be more work here
+  const createArg = createData as any;
       const order = await tx.order.create({ data: createArg });
 
       return order;
