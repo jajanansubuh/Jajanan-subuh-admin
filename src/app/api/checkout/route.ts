@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { Prisma } from "@prisma/client";
 // local minimal type for create payload (avoid importing generated types to prevent TS path issues)
 type OrderUncheckedCreateInputLocal = {
   id?: string;
@@ -387,7 +388,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const created = await db.$transaction(async (tx) => {
+  const created = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // attempt to reserve an order number at the start of the transaction
       let reservedOrderNum: number | undefined = undefined;
       try {
@@ -466,9 +467,8 @@ export async function POST(req: Request) {
       // create the order (orderData may include orderNumber)
       const createData = orderData as unknown as OrderUncheckedCreateInputLocal;
       // adapt createData to the tx.order.create parameter type without importing Prisma types
-      const createArg = createData as unknown as Parameters<
-        typeof tx.order.create
-      >[0]["data"];
+      // Note: cast to any to avoid complex type extraction; createData is validated shape above
+      const createArg = createData as any;
       const order = await tx.order.create({ data: createArg });
 
       return order;
