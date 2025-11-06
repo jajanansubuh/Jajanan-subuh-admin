@@ -4,7 +4,7 @@ Purpose: Assign persistent orderNumber to existing orders that have orderNumber 
 Usage (from project root):
   - Install dependencies if needed: `npm install` (project already has Prisma client generated in `generated/prisma`)
   - Run with ts-node or compile with tsc. Example using ts-node:
-      cd scripts && npx ts-node fill-order-numbers.ts
+      npx ts-node src/scripts/fill-order-numbers.ts
 
 Notes:
   - This script uses the generated Prisma client that's used by the project.
@@ -13,8 +13,7 @@ Notes:
   - Backup DB before running in production.
 */
 
-// Import using absolute path from scripts directory
-import db from "../src/lib/db";
+import db from "@/lib/db";
 import { PrismaClient, Prisma } from "@prisma/client";
 
 async function ensureSequence() {
@@ -58,7 +57,7 @@ async function fillMissingOrderNumbers(batchSize = 100) {
       const val = await nextSequenceValue();
       try {
         // update in a short transaction
-  await db.$transaction(async (tx: Prisma.TransactionClient) => {
+        await db.$transaction(async (tx: Prisma.TransactionClient) => {
           // double-check still null to avoid races
           const current = await tx.order.findUnique({
             where: { id: o.id },
