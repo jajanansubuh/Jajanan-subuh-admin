@@ -14,6 +14,7 @@ Notes:
 */
 
 import db from "../src/lib/db";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 async function ensureSequence() {
   try {
@@ -56,7 +57,7 @@ async function fillMissingOrderNumbers(batchSize = 100) {
       const val = await nextSequenceValue();
       try {
         // update in a short transaction
-        await db.$transaction(async (tx) => {
+  await db.$transaction(async (tx: Prisma.TransactionClient) => {
           // double-check still null to avoid races
           const current = await tx.order.findUnique({
             where: { id: o.id },
