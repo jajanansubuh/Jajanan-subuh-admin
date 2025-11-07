@@ -1,28 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 
-// Development CORS headers (allow any origin). In production, restrict this.
+// CORS headers configuration
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+  "Access-Control-Max-Age": "86400"
 };
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      ...CORS_HEADERS,
+      "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
+    }
+  });
 }
 
 export async function GET(request: NextRequest) {
-  // parse URL safely (handle relative internal requests)
-  let urlForParse = String(request.url);
-  try {
-    new URL(urlForParse);
-  } catch {
-    const port = process.env.PORT || "3000";
-    urlForParse = `http://localhost:${port}${urlForParse}`;
-  }
-
-  const { searchParams } = new URL(urlForParse);
+  // Parse URL - this will work both locally and in production
+  const url = new URL(request.url);
+  const { searchParams } = url;
   const productId = searchParams.get("productId");
 
   try {
@@ -108,15 +108,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // parse id from query or body
-    let urlForParse = String(request.url);
-    try {
-      new URL(urlForParse);
-    } catch {
-      const port = process.env.PORT || "3000";
-      urlForParse = `http://localhost:${port}${urlForParse}`;
-    }
-    const { searchParams } = new URL(urlForParse);
+    // Parse URL to get the id parameter
+    const url = new URL(request.url);
+    const { searchParams } = url;
     let id = searchParams.get("id");
 
     if (!id) {
