@@ -14,7 +14,7 @@ Notes:
 */
 
 import db from "@/lib/db";
-import { PrismaClient, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 async function ensureSequence() {
   try {
