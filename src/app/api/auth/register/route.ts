@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
-import prismadb from "@/lib/prismadb";
+// prismadb will be dynamically imported inside the request handler to avoid
+// initializing @prisma/client at build-time which can cause build errors.
 import { cors } from "@/lib/cors";
 
 export async function POST(req: Request) {
   try {
     await cors(req);
+    const { default: prismadb } = await import("@/lib/prismadb");
     
     const body = await req.json();
     const { email, password, name } = body;
