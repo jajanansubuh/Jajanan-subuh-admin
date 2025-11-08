@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { compare } from "bcrypt";
-import { PrismaClient } from "@prisma/client";
+import prismadb from "@/lib/prismadb";
 import { cors } from "@/lib/cors";
 import { sign } from "jsonwebtoken";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +15,7 @@ export async function POST(req: Request) {
       return new NextResponse("Missing fields", { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prismadb.user.findUnique({
       where: {
         email
       }
