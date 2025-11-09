@@ -9,6 +9,8 @@ export async function cors(req: Request) {
     'http://localhost:3000',    // Admin development
     process.env.STORE_URL,      // Store production
     process.env.ADMIN_URL,      // Admin production
+    'https://jajanan-subuh.vercel.app',  // Store production
+    'https://jajanan-subuh-admin.vercel.app', // Admin production
   ].filter(Boolean);
 
   if (origin && allowedOrigins.includes(origin)) {
