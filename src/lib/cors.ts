@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 export async function cors(req: Request): Promise<Record<string, string>> {
   const origin = req.headers.get("origin");
   
