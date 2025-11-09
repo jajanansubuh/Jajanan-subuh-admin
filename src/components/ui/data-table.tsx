@@ -28,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey: string;
+  meta?: Record<string, any>;
   showSearch?: boolean;
   // optional external search value controlled by parent
   externalSearch?: string;
@@ -39,6 +40,7 @@ export function DataTable<TData, TValue>({
   searchKey,
   showSearch = true,
   externalSearch,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
@@ -51,6 +53,7 @@ export function DataTable<TData, TValue>({
     state: {
       columnFilters,
     },
+    meta: meta,
   });
 
   // If a parent passes an external search value, apply it to the
