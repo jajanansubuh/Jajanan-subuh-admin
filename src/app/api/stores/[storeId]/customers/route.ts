@@ -4,8 +4,8 @@ import bcrypt from "bcrypt";
 import prismadb from "@/lib/prismadb";
 
 export async function GET(
-  _req: Request,
-  _context: { params: { storeId: string } }
+  req: Request,
+  { params }: { params: { storeId: string } }
 ) {
   try {
     const users = await prismadb.user.findMany({
@@ -23,7 +23,7 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  _context: { params: { storeId: string } }
+  { params }: { params: { storeId: string } }
 ) {
   try {
     const body = await req.json();

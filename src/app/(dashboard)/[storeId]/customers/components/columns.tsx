@@ -4,6 +4,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { MoreHorizontal, Edit, Trash } from "lucide-react"
 
+interface TableMeta {
+  onEdit: (customer: CustomersColumn) => void;
+  onDelete: (customerId: string) => void;
+}
+
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -86,11 +91,12 @@ export const columns: ColumnDef<CustomersColumn>[] = [
     id: "actions",
     cell: ({ row, table }) => {
       const customer = row.original
+      const meta = table.options.meta as TableMeta;
       return (
         <CellActions
           data={customer}
-            onEdit={(table.options.meta as any)?.onEdit}
-            onDelete={(table.options.meta as any)?.onDelete}
+          onEdit={meta.onEdit}
+          onDelete={meta.onDelete}
         />
       )
     },
