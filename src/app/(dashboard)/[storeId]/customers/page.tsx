@@ -12,11 +12,17 @@ import { CustomerForm } from "./components/customer-form";
 import { columns, CustomersColumn } from "./components/columns";
 import { AlertModal } from "@/components/modals/alert-modal";
 
+interface PageProps {
+  params: {
+    storeId: string;
+  };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 export default function CustomersPage({
-  params
-}: {
-  params: { storeId: string }
-}) {
+  params,
+  searchParams,
+}: PageProps) {
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
