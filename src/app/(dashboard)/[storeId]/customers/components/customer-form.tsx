@@ -69,6 +69,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       toast.success("Customer updated successfully");
       onClose();
     } catch (error) {
+      console.error('Error saving customer:', error);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -23,41 +23,44 @@ export default function CustomersPage({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomersColumn | null>(null);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       const response = await fetch(`/api/stores/${params.storeId}/customers`);
       const data = await response.json();
-      setCustomers(data);
-    } catch (error) {
-      console.error('Error fetching customers:', error);
+      // assume API returns correct shape; coerce to CustomersColumn[]
+      setCustomers((data as unknown) as CustomersColumn[]);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
       toast.error("Failed to load customers");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchCustomers();
   }, [params.storeId]);
 
-  const onEdit = (customer: CustomersColumn) => {
+  useEffect(() => {
+    void fetchCustomers();
+  }, [fetchCustomers]);
+
+  const onEdit = useCallback((customer: CustomersColumn) => {
     setSelectedCustomer(customer);
     setOpen(true);
-  };
+  }, []);
 
-  const onDelete = (customerId: string) => {
+  const onDelete = useCallback((customerId: string) => {
     setSelectedCustomer(customers.find(c => c.id === customerId) || null);
     setDeleteOpen(true);
-  };
+  }, [customers]);
 
   const handleDelete = async () => {
+    if (!selectedCustomer) return;
     try {
-      await fetch(`/api/stores/${params.storeId}/customers/${selectedCustomer?.id}`, {
+      await fetch(`/api/stores/${params.storeId}/customers/${selectedCustomer.id}`, {
         method: "DELETE"
       });
       toast.success("Customer deleted successfully");
-      fetchCustomers();
-    } catch (error) {
+      await fetchCustomers();
+    } catch (err) {
+      console.error('Error deleting customer:', err);
       toast.error("Something went wrong");
     } finally {
       setDeleteOpen(false);
@@ -65,7 +68,7 @@ export default function CustomersPage({
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Omit<CustomersColumn, 'id' | 'createdAt'>) => {
     try {
       if (selectedCustomer) {
         await fetch(`/api/stores/${params.storeId}/customers/${selectedCustomer.id}`, {
@@ -84,8 +87,9 @@ export default function CustomersPage({
           body: JSON.stringify(data),
         });
       }
-      fetchCustomers();
+      await fetchCustomers();
     } catch (error) {
+      console.error('Error saving customer:', error);
       toast.error("Something went wrong");
     }
   };

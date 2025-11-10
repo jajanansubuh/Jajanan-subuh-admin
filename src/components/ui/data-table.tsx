@@ -13,6 +13,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
+  TableMeta,
 } from "@tanstack/react-table";
 
 import {
@@ -28,7 +29,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey: string;
-  meta?: Record<string, any>;
+  meta?: TableMeta<TData> | undefined;
   showSearch?: boolean;
   // optional external search value controlled by parent
   externalSearch?: string;
