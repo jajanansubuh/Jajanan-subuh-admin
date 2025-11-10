@@ -4,11 +4,14 @@ import bcrypt from "bcrypt";
 import prismadb from "@/lib/prismadb";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { storeId: string } }
+  _req: Request,
+  { params: { storeId } }: { params: { storeId: string } }
 ) {
   try {
     const users = await prismadb.user.findMany({
+      where: {
+        storeId
+      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -23,7 +26,7 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params: { storeId } }: { params: { storeId: string } }
 ) {
   try {
     const body = await req.json();
@@ -41,6 +44,7 @@ export async function POST(
         email,
         role: role as "ADMIN" | "CUSTOMER",
         password: hashedPassword,
+        storeId
       },
     });
 
