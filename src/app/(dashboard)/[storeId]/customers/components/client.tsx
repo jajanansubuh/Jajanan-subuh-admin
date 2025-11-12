@@ -18,6 +18,26 @@ export default function CustomerClient({
   params
 }: CustomerClientProps) {
   const storeId = params?.storeId;
+  // Hooks MUST be called unconditionally. Declare state and callbacks here,
+  // then early-return the UI if `storeId` is missing. The callbacks themselves
+  // will noop when `storeId` is not present.
+  const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
+
+  const fetchCustomers = useCallback(async () => {
+    if (!storeId) return;
+    try {
+      const response = await fetch(`/api/stores/${storeId}/customers`);
+      const data = await response.json();
+      setCustomers(data);
+    } catch {
+      toast.error("Failed to load customers");
+    }
+  }, [storeId]);
+
+  useEffect(() => {
+    if (!storeId) return;
+    fetchCustomers();
+  }, [fetchCustomers, storeId]);
 
   // Defensive: if storeId is missing, avoid calling the customers API which
   // would request `/api/stores/undefined/customers` and return a 500.
@@ -28,22 +48,6 @@ export default function CustomerClient({
       </div>
     );
   }
-  const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
-  
-
-  const fetchCustomers = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/stores/${storeId}/customers`);
-      const data = await response.json();
-      setCustomers(data);
-    } catch {
-      toast.error("Failed to load customers");
-    }
-  }, [params.storeId]);
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
 
   return (
     <>
