@@ -25,10 +25,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ storeId: string }> }
-) {
+export async function POST() {
   // Customers management is read-only - no new customers can be added from admin
   // Customers come from the store application only
   return new NextResponse("Method not allowed", { status: 405 });

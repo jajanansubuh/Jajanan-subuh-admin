@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
-import { Button } from "@/components/ui/button"
+// Button import removed - not used in columns
 
 export type CustomersColumn = {
   id: string

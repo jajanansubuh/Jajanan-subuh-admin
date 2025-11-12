@@ -18,17 +18,15 @@ export default function CustomerClient({
   params
 }: CustomerClientProps) {
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
-  const [loading, setLoading] = useState(true);
+  
 
   const fetchCustomers = useCallback(async () => {
     try {
       const response = await fetch(`/api/stores/${params.storeId}/customers`);
       const data = await response.json();
       setCustomers(data);
-      setLoading(false);
     } catch {
       toast.error("Failed to load customers");
-      setLoading(false);
     }
   }, [params.storeId]);
 
