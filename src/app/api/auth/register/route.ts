@@ -67,8 +67,27 @@ export async function POST(req: Request) {
       { headers }
     );
   } catch (error) {
+    // Always log the full error server-side for debugging
     console.error("[REGISTRATION_ERROR]", error);
     const headers = await cors(req);
+
+    // Safely extract message/stack when available
+    const errMessage = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error && error.stack ? error.stack : undefined;
+
+    // If the caller explicitly requests debug info (header x-debug: true or ?debug=1),
+    // include the error detail in the JSON response. This is temporary and should be
+    // used only for debugging in a secure environment.
+    const url = new URL(req.url);
+    const wantDebug = req.headers.get("x-debug") === "true" || url.searchParams.get("debug") === "1";
+
+    if (wantDebug) {
+      return NextResponse.json(
+        { error: "Internal Error", detail: errMessage, stack: errStack },
+        { status: 500, headers }
+      );
+    }
+
     return NextResponse.json({ error: "Internal Error" }, { status: 500, headers });
   }
 }
