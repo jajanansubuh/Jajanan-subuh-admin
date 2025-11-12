@@ -9,15 +9,19 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const headers = await cors(req);
+
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
-    const headers = await cors(req);
     
     const body = await req.json();
     const { email, password } = body;
 
     if (!email || !password) {
-      return new NextResponse("Missing fields", { status: 400, headers });
+      return NextResponse.json(
+        { error: "Missing fields" },
+        { status: 400, headers }
+      );
     }
     
     const user = await prismadb.user.findUnique({
@@ -29,13 +33,19 @@ export async function POST(req: Request) {
     // The users table stores the hashed password in the `password` column.
     // Some older code expected `hashedPassword` — normalize to the DB column.
     if (!user || !user.password) {
-      return new NextResponse("Invalid credentials", { status: 401, headers });
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401, headers }
+      );
     }
 
     const passwordMatch = await compare(password, user.password);
 
     if (!passwordMatch) {
-      return new NextResponse("Invalid credentials", { status: 401, headers });
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401, headers }
+      );
     }
 
     // Create JWT token
@@ -62,7 +72,9 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     console.error("[LOGIN_ERROR]", error);
-    const headers = await cors(req);
-    return NextResponse.json({ error: "Internal Error" }, { status: 500, headers });
+    return NextResponse.json(
+      { error: "Internal Error" },
+      { status: 500, headers }
+    );
   }
 }

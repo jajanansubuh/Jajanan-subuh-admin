@@ -11,21 +11,28 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const headers = await cors(req);
+
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
-    const headers = await cors(req);
 
     const body = await req.json();
     const { email, password, name, storeId, address, phone, gender } = body;
 
     if (!email || !password || !name) {
-      return new NextResponse("Missing fields", { status: 400, headers });
+      return NextResponse.json(
+        { error: "Missing fields" },
+        { status: 400, headers }
+      );
     }
 
     const existingUser = await prismadb.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return new NextResponse("Email already exists", { status: 400, headers });
+      return NextResponse.json(
+        { error: "Email already exists" },
+        { status: 400, headers }
+      );
     }
 
     // If a storeId is provided, ensure the referenced store exists to avoid
@@ -33,7 +40,10 @@ export async function POST(req: Request) {
     if (storeId) {
       const store = await prismadb.store.findUnique({ where: { id: storeId } });
       if (!store) {
-        return new NextResponse("Store not found", { status: 404, headers });
+        return NextResponse.json(
+          { error: "Store not found" },
+          { status: 404, headers }
+        );
       }
     }
 
@@ -83,7 +93,6 @@ export async function POST(req: Request) {
   } catch (error) {
     // Always log the full error server-side for debugging
     console.error("[REGISTRATION_ERROR]", error);
-    const headers = await cors(req);
 
     // Safely extract message/stack when available
     const errMessage = error instanceof Error ? error.message : String(error);
