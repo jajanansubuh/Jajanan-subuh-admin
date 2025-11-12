@@ -5,9 +5,9 @@ import bcrypt from "bcrypt";
 
 export async function GET(
   _req: Request,
-  props: unknown
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
-  const { params: { storeId } } = props as { params: { storeId: string } };
+  const { storeId } = await params;
   try {
   const prismadb = (await import('@/lib/prismadb')).default;
   const users = await prismadb.user.findMany({
@@ -28,9 +28,9 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  props: unknown
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
-  const { params: { storeId } } = props as { params: { storeId: string } };
+  const { storeId } = await params;
   try {
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
@@ -39,16 +39,27 @@ export async function POST(
       return new NextResponse("Name and email are required", { status: 400 });
     }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    if (!storeId) {
+      return new NextResponse("Store id is required", { status: 400 });
+    }
 
-  const prismadb = (await import('@/lib/prismadb')).default;
-  const customer = await prismadb.user.create({
+    const prismadb = (await import('@/lib/prismadb')).default;
+
+    // Ensure the store exists before attempting to create a user with a FK to it
+    const store = await prismadb.store.findUnique({ where: { id: storeId } });
+    if (!store) {
+      return new NextResponse("Store not found", { status: 404 });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const customer = await prismadb.user.create({
       data: {
         name,
         email,
         role: role as "ADMIN" | "CUSTOMER",
         password: hashedPassword,
-        storeId
+        storeId,
       },
     });
 

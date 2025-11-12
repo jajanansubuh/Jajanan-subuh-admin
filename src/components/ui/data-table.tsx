@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
+  TableMeta,
 } from "@tanstack/react-table";
 
 import {
@@ -27,22 +28,25 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  searchKey?: string;
-  meta?: Record<string, unknown>;
+  searchKey: string;
+  meta?: TableMeta<TData> | undefined;
+  showSearch?: boolean;
+  // optional external search value controlled by parent
+  externalSearch?: string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  showSearch = true,
+  externalSearch,
   meta,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
   const table = useReactTable({
     data,
     columns,
-    meta,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -50,22 +54,38 @@ export function DataTable<TData, TValue>({
     state: {
       columnFilters,
     },
+    meta: meta,
   });
+
+  // If a parent passes an external search value, apply it to the
+  // table's column filter so the table is controlled from outside.
+  useEffect(() => {
+    try {
+      const col = table.getColumn(searchKey);
+      if (col) {
+        col.setFilterValue(externalSearch ?? "");
+      }
+    } catch {
+      // noop
+    }
+  }, [externalSearch, searchKey, table]);
 
   return (
     <div>
-      {searchKey && (
+      {showSearch ? (
         <div className="flex items-center py-4">
           <Input
             placeholder="Search"
-            value={table.getColumn(searchKey)?.getFilterValue() as string ?? ""}
+            value={
+              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
               table.getColumn(searchKey)?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
         </div>
-      )}
+      ) : null}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -117,9 +137,6 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredRowModel().rows.length} result(s)
-        </div>
         <Button
           variant="outline"
           size="sm"

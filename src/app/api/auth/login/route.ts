@@ -26,11 +26,13 @@ export async function POST(req: Request) {
       }
     });
 
-    if (!user || !user.hashedPassword) {
+    // The users table stores the hashed password in the `password` column.
+    // Some older code expected `hashedPassword` — normalize to the DB column.
+    if (!user || !user.password) {
       return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
-    const passwordMatch = await compare(password, user.hashedPassword);
+    const passwordMatch = await compare(password, user.password);
 
     if (!passwordMatch) {
       return new NextResponse("Invalid credentials", { status: 401, headers });

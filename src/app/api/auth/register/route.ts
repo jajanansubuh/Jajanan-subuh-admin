@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const { default: prismadb } = await import("@/lib/prismadb");
     
     const body = await req.json();
-    const { email, password, name } = body;
+  const { email, password, name, storeId } = body;
 
     if (!email || !password || !name) {
       return new NextResponse("Missing fields", { status: 400 });
@@ -37,14 +37,21 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await prismadb.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: "CUSTOMER" // Default role for store users
-      }
-    });
+    const userData: any = {
+      name,
+      email,
+      password: hashedPassword,
+      role: "CUSTOMER", // Default role for store users
+    };
+
+    // If the request includes a storeId (registration coming from a storefront),
+    // associate the created user with that store so the admin customers list
+    // for the store will include this user.
+    if (storeId) {
+      userData.storeId = storeId;
+    }
+
+    const user = await prismadb.user.create({ data: userData });
 
     const origin = req.headers.get("origin") || "";
     const headers = {
