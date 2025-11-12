@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const headers = await cors(req);
 
     const body = await req.json();
-    const { email, password, name, storeId } = body;
+    const { email, password, name, storeId, address, phone, gender } = body;
 
     if (!email || !password || !name) {
       return new NextResponse("Missing fields", { status: 400, headers });
@@ -46,6 +46,9 @@ export async function POST(req: Request) {
       password: string;
       role: "CUSTOMER" | "ADMIN";
       storeId?: string;
+      address?: string;
+      phone?: string;
+      gender?: string;
     } = {
       name,
       email,
@@ -58,6 +61,17 @@ export async function POST(req: Request) {
     // for the store will include this user.
     if (storeId) {
       userData.storeId = storeId;
+    }
+
+    // Add optional fields if provided
+    if (address) {
+      userData.address = address;
+    }
+    if (phone) {
+      userData.phone = phone;
+    }
+    if (gender) {
+      userData.gender = gender;
     }
 
     const user = await prismadb.user.create({ data: userData });

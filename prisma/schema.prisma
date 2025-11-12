@@ -146,6 +146,9 @@ model User {
   storeId   String?
   store     Store?   @relation(fields: [storeId], references: [id])
   role      String   @default("CUSTOMER") // Can be "ADMIN", "CUSTOMER"
+  address   String?
+  phone     String?
+  gender    String?  // Can be "MALE", "FEMALE", "OTHER"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   reviews   Review[]
