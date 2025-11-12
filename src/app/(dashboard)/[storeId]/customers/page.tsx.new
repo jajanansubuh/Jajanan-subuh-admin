@@ -1,0 +1,19 @@
+import { Suspense } from 'react';
+import CustomerClient from "./components/client";
+
+interface PageProps {
+  params: {
+    storeId: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function CustomersPage({
+  params
+}: PageProps) {
+  return (
+    <Suspense>
+      <CustomerClient params={params} />
+    </Suspense>
+  );
+}

@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 
-import prismadb from "@/lib/prismadb";
+// Lazy import prismadb inside handlers to avoid initializing Prisma at module import time
 
 export async function GET(
   _req: Request,
-  { params: { storeId } }: { params: { storeId: string } }
+  props: unknown
 ) {
+  const { params: { storeId } } = props as { params: { storeId: string } };
   try {
-    const users = await prismadb.user.findMany({
+  const prismadb = (await import('@/lib/prismadb')).default;
+  const users = await prismadb.user.findMany({
       where: {
         storeId
       },
@@ -26,8 +28,9 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params: { storeId } }: { params: { storeId: string } }
+  props: unknown
 ) {
+  const { params: { storeId } } = props as { params: { storeId: string } };
   try {
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
@@ -36,9 +39,10 @@ export async function POST(
       return new NextResponse("Name and email are required", { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    const customer = await prismadb.user.create({
+  const prismadb = (await import('@/lib/prismadb')).default;
+  const customer = await prismadb.user.create({
       data: {
         name,
         email,

@@ -558,8 +558,6 @@ export default function SalesPageClient({
             columns={columns}
             data={data}
             searchKey="search"
-            showSearch={false}
-            externalSearch={query}
           />
         </div>
       </div>

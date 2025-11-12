@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
-import prismadb from "@/lib/prismadb";
+// Lazy import prismadb inside handlers to avoid initializing Prisma at module import time
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { storeId: string; customerId: string } }
+  props: unknown
 ) {
+  const { params } = props as { params: { storeId: string; customerId: string } };
   try {
     const body = await req.json();
     const { name, email, role } = body;
@@ -18,7 +19,8 @@ export async function PATCH(
       return new NextResponse("Customer ID is required", { status: 400 });
     }
 
-    const customer = await prismadb.user.update({
+  const prismadb = (await import('@/lib/prismadb')).default;
+  const customer = await prismadb.user.update({
       where: {
         id: params.customerId,
       },
@@ -38,14 +40,16 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { storeId: string; customerId: string } }
+  props: unknown
 ) {
+  const { params } = props as { params: { storeId: string; customerId: string } };
   try {
     if (!params.customerId) {
       return new NextResponse("Customer ID is required", { status: 400 });
     }
 
-    const customer = await prismadb.user.delete({
+  const prismadb = (await import('@/lib/prismadb')).default;
+  const customer = await prismadb.user.delete({
       where: {
         id: params.customerId,
       },
