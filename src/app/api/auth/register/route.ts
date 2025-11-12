@@ -4,12 +4,12 @@ import { hash } from "bcrypt";
 // initializing @prisma/client at build-time which can cause build errors.
 
 export async function OPTIONS(req: Request) {
-  const origin = req.headers.get("origin") || "";
+  // Use shared cors helper to build consistent headers
   const headers = {
-    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Origin": req.headers.get("origin") || "",
   };
   return NextResponse.json({}, { headers });
 }
@@ -72,6 +72,11 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("[REGISTRATION_ERROR]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    const origin = req.headers.get("origin") || "";
+    const headers = {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Credentials": "true",
+    };
+    return NextResponse.json({ error: "Internal Error" }, { status: 500, headers });
   }
 }

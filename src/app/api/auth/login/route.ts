@@ -63,6 +63,6 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("[LOGIN_ERROR]", error);
     const headers = await cors(req);
-    return new NextResponse("Internal Error", { status: 500, headers });
+    return NextResponse.json({ error: "Internal Error" }, { status: 500, headers });
   }
 }
