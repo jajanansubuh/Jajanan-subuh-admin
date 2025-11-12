@@ -37,11 +37,18 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const userData: any = {
+    // Strongly type the payload we send to Prisma to satisfy lint rules
+    const userData: {
+      name: string;
+      email: string;
+      password: string;
+      role: "CUSTOMER" | "ADMIN";
+      storeId?: string;
+    } = {
       name,
       email,
       password: hashedPassword,
-      role: "CUSTOMER", // Default role for store users
+      role: "CUSTOMER",
     };
 
     // If the request includes a storeId (registration coming from a storefront),
