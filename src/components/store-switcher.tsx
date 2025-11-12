@@ -41,6 +41,7 @@ const StoreSwitcher = ({ className, items = [] }: StoreSwitcherProps) => {
   const storeModal = useStoreModal();
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const formattedItems = items.map((item) => ({
     label: item.name,
@@ -60,7 +61,6 @@ const StoreSwitcher = ({ className, items = [] }: StoreSwitcherProps) => {
     // path segment (the store id) with the selected store id so if the user
     // is on `/OLDSTORE/customers` they will be navigated to
     // `/NEWSTORE/customers` instead of root.
-    const pathname = usePathname();
     if (!pathname || pathname === "/") {
       router.push(`/${store.value}`);
       return;
