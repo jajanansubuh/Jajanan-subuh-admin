@@ -4,6 +4,7 @@ import {
   type NextFetchEvent,
 } from "next/server";
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { cors } from "@/lib/cors";
 
 export default async function middleware(
   request: NextRequest,
@@ -11,27 +12,19 @@ export default async function middleware(
 ) {
   // CORS preflight
   if (request.method === "OPTIONS") {
+    const headers = await cors(request as unknown as Request);
     return new NextResponse(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
+      headers,
     });
   }
   // clerkMiddleware bisa async, pastikan resolve
   const response = await clerkMiddleware()(request, event);
   if (response) {
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
+    const headers = await cors(request as unknown as Request);
+    Object.entries(headers).forEach(([k, v]) => {
+      response.headers.set(k, v as string);
+    });
   }
   return response;
 }
