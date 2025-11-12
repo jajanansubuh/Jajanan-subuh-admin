@@ -1,38 +1,40 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
+import { cors } from "@/lib/cors";
+
 // prismadb will be dynamically imported inside the request handler to avoid
 // initializing @prisma/client at build-time which can cause build errors.
 
 export async function OPTIONS(req: Request) {
-  // Use shared cors helper to build consistent headers
-  const headers = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Origin": req.headers.get("origin") || "",
-  };
+  const headers = await cors(req);
   return NextResponse.json({}, { headers });
 }
 
 export async function POST(req: Request) {
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
-    
+    const headers = await cors(req);
+
     const body = await req.json();
-  const { email, password, name, storeId } = body;
+    const { email, password, name, storeId } = body;
 
     if (!email || !password || !name) {
-      return new NextResponse("Missing fields", { status: 400 });
+      return new NextResponse("Missing fields", { status: 400, headers });
     }
 
-    const existingUser = await prismadb.user.findUnique({
-      where: {
-        email
-      }
-    });
+    const existingUser = await prismadb.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return new NextResponse("Email already exists", { status: 400 });
+      return new NextResponse("Email already exists", { status: 400, headers });
+    }
+
+    // If a storeId is provided, ensure the referenced store exists to avoid
+    // a foreign-key constraint failure when creating the user.
+    if (storeId) {
+      const store = await prismadb.store.findUnique({ where: { id: storeId } });
+      if (!store) {
+        return new NextResponse("Store not found", { status: 404, headers });
+      }
     }
 
     const hashedPassword = await hash(password, 10);
@@ -60,23 +62,13 @@ export async function POST(req: Request) {
 
     const user = await prismadb.user.create({ data: userData });
 
-    const origin = req.headers.get("origin") || "";
-    const headers = {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Credentials": "true",
-    };
-
     return NextResponse.json(
       { user: { id: user.id, name: user.name, email: user.email } },
       { headers }
     );
   } catch (error) {
     console.error("[REGISTRATION_ERROR]", error);
-    const origin = req.headers.get("origin") || "";
-    const headers = {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Credentials": "true",
-    };
+    const headers = await cors(req);
     return NextResponse.json({ error: "Internal Error" }, { status: 500, headers });
   }
 }
