@@ -17,12 +17,23 @@ interface CustomerClientProps {
 export default function CustomerClient({
   params
 }: CustomerClientProps) {
+  const storeId = params?.storeId;
+
+  // Defensive: if storeId is missing, avoid calling the customers API which
+  // would request `/api/stores/undefined/customers` and return a 500.
+  if (!storeId) {
+    return (
+      <div className="p-8">
+        <p className="text-sm text-muted-foreground">No store selected. Please open this page from a store context.</p>
+      </div>
+    );
+  }
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
   
 
   const fetchCustomers = useCallback(async () => {
     try {
-      const response = await fetch(`/api/stores/${params.storeId}/customers`);
+      const response = await fetch(`/api/stores/${storeId}/customers`);
       const data = await response.json();
       setCustomers(data);
     } catch {
