@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import { cors } from "@/lib/cors";
 
-// prismadb will be dynamically imported inside the request handler to avoid
-// initializing @prisma/client at build-time which can cause build errors.
-
 export async function OPTIONS(req: Request) {
   const headers = await cors(req);
   return NextResponse.json({}, { headers });
@@ -66,14 +63,10 @@ export async function POST(req: Request) {
       role: "CUSTOMER",
     };
 
-    // If the request includes a storeId (registration coming from a storefront),
-    // associate the created user with that store so the admin customers list
-    // for the store will include this user.
     if (storeId) {
       userData.storeId = storeId;
     }
 
-    // Add optional fields if provided
     if (address) {
       userData.address = address;
     }
