@@ -21,8 +21,6 @@ model Store {
   categories Category[] @relation("StoreToCategory")
   orders     Order[]    @relation("StoreToOrder")
   product    Product[]  @relation("StoreToProduct")
-  // Customers who belong to this store (optional)
-  customers  User[]
 }
 
 model Banner {
@@ -142,16 +140,8 @@ model User {
   name      String
   email     String   @unique
   password  String
-  // Optional association to a Store when this user is a customer of a store
-  storeId   String?
-  store     Store?   @relation(fields: [storeId], references: [id])
   role      String   @default("CUSTOMER") // Can be "ADMIN", "CUSTOMER"
-  address   String?
-  phone     String?
-  gender    String?  // Can be "MALE", "FEMALE", "OTHER"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   reviews   Review[]
-
-  @@index([storeId])
 }

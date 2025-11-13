@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
-import { cors } from "@/lib/cors";
+
+// CORS headers configuration
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+  "Access-Control-Max-Age": "86400"
+};
 
 export async function OPTIONS(request: NextRequest) {
-  const headers = await cors(request as unknown as Request);
   return new NextResponse(null, {
     status: 200,
     headers: {
-      ...headers,
-      "Access-Control-Max-Age": "86400",
-    },
+      ...CORS_HEADERS,
+      "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
+    }
   });
 }
 
@@ -25,13 +31,11 @@ export async function GET(request: NextRequest) {
         where: { productId },
         orderBy: { createdAt: "desc" },
       });
-  const headers = await cors(request as unknown as Request);
-  return NextResponse.json(list, { headers });
+      return NextResponse.json(list, { headers: CORS_HEADERS });
     }
 
     const all = await db.review.findMany({ orderBy: { createdAt: "desc" } });
-  const headers = await cors(request as unknown as Request);
-  return NextResponse.json(all, { headers });
+    return NextResponse.json(all, { headers: CORS_HEADERS });
   } catch (error) {
     // If the Review table doesn't exist yet, return an empty list instead of erroring.
     const msg =
@@ -44,13 +48,11 @@ export async function GET(request: NextRequest) {
       msg.includes("does not exist") ||
       msg.includes('relation "Review" does not exist')
     ) {
-  const headers = await cors(request as unknown as Request);
-  return NextResponse.json([], { headers });
+      return NextResponse.json([], { headers: CORS_HEADERS });
     }
-    const headers = await cors(request as unknown as Request);
     return new NextResponse("Internal error", {
       status: 500,
-      headers,
+      headers: CORS_HEADERS,
     });
   }
 }
@@ -61,10 +63,9 @@ export async function POST(request: NextRequest) {
     const { productId, name, rating, comment } = body;
 
     if (!productId || !name) {
-      const headers = await cors(request as unknown as Request);
       return new NextResponse("productId and name are required", {
         status: 400,
-        headers,
+        headers: CORS_HEADERS,
       });
     }
 
@@ -78,8 +79,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-  const headers = await cors(request as unknown as Request);
-  return NextResponse.json(created, { status: 201, headers });
+      return NextResponse.json(created, { status: 201, headers: CORS_HEADERS });
     } catch (dbErr) {
       const msg =
         dbErr && (dbErr as Error).message
@@ -87,24 +87,21 @@ export async function POST(request: NextRequest) {
           : String(dbErr);
       console.error("[REVIEWS_POST_DB]", msg);
       if (msg.includes("does not exist")) {
-        const headers = await cors(request as unknown as Request);
         return new NextResponse("Review table not available", {
           status: 503,
-          headers,
+          headers: CORS_HEADERS,
         });
       }
-      const headers = await cors(request as unknown as Request);
       return new NextResponse("Internal error", {
         status: 500,
-        headers,
+        headers: CORS_HEADERS,
       });
     }
   } catch (error) {
     console.error("[REVIEWS_POST]", error);
-    const headers = await cors(request as unknown as Request);
     return new NextResponse("Invalid request", {
       status: 400,
-      headers,
+      headers: CORS_HEADERS,
     });
   }
 }
@@ -127,17 +124,15 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!id) {
-      const headers = await cors(request as unknown as Request);
       return new NextResponse("id is required", {
         status: 400,
-        headers,
+        headers: CORS_HEADERS,
       });
     }
 
     try {
       const deleted = await db.review.delete({ where: { id } });
-  const headers = await cors(request as unknown as Request);
-  return NextResponse.json(deleted, { headers });
+      return NextResponse.json(deleted, { headers: CORS_HEADERS });
     } catch (err) {
       const msg =
         err && (err as Error).message ? (err as Error).message : String(err);
@@ -146,24 +141,21 @@ export async function DELETE(request: NextRequest) {
         msg.includes("Record to delete does not exist") ||
         msg.includes("does not exist")
       ) {
-        const headers = await cors(request as unknown as Request);
         return new NextResponse("Not found", {
           status: 404,
-          headers,
+          headers: CORS_HEADERS,
         });
       }
-      const headers = await cors(request as unknown as Request);
       return new NextResponse("Internal error", {
         status: 500,
-        headers,
+        headers: CORS_HEADERS,
       });
     }
   } catch (error) {
     console.error("[REVIEWS_DELETE]", error);
-    const headers = await cors(request as unknown as Request);
     return new NextResponse("Invalid request", {
       status: 400,
-      headers,
+      headers: CORS_HEADERS,
     });
   }
 }

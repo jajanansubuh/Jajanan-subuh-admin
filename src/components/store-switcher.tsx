@@ -10,7 +10,7 @@ type Store = {
 };
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { useStoreModal } from "@/hooks/use-store-modal";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import {
   Check,
@@ -41,7 +41,6 @@ const StoreSwitcher = ({ className, items = [] }: StoreSwitcherProps) => {
   const storeModal = useStoreModal();
   const params = useParams();
   const router = useRouter();
-  const pathname = usePathname();
 
   const formattedItems = items.map((item) => ({
     label: item.name,
@@ -56,24 +55,6 @@ const StoreSwitcher = ({ className, items = [] }: StoreSwitcherProps) => {
 
   const onStoreSelect = (store: { value: string; label: string }) => {
     setOpen(false);
-
-    // Preserve the current subpath when switching store. Replace the first
-    // path segment (the store id) with the selected store id so if the user
-    // is on `/OLDSTORE/customers` they will be navigated to
-    // `/NEWSTORE/customers` instead of root.
-    if (!pathname || pathname === "/") {
-      router.push(`/${store.value}`);
-      return;
-    }
-
-    const parts = pathname.split("/"); // ['', storeId, ...rest]
-    if (parts.length > 1) {
-      parts[1] = store.value;
-      const newPath = parts.join("/") || `/${store.value}`;
-      router.push(newPath);
-      return;
-    }
-
     router.push(`/${store.value}`);
   };
 

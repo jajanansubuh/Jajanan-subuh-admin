@@ -5,29 +5,19 @@ import { cors } from "@/lib/cors";
 
 export async function OPTIONS(req: Request) {
   const headers = await cors(req);
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      ...headers,
-      "Access-Control-Max-Age": "86400",
-    },
-  });
+  return NextResponse.json({}, { headers });
 }
 
 export async function POST(req: Request) {
-  const headers = await cors(req);
-
   try {
-  const prismadb = (await import("@/lib/prismadb")).default;
+    const { default: prismadb } = await import("@/lib/prismadb");
+    const headers = await cors(req);
     
     const body = await req.json();
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400, headers }
-      );
+      return new NextResponse("Missing fields", { status: 400, headers });
     }
     
     const user = await prismadb.user.findUnique({
@@ -36,22 +26,14 @@ export async function POST(req: Request) {
       }
     });
 
-    // The users table stores the hashed password in the `password` column.
-    // Some older code expected `hashedPassword` — normalize to the DB column.
-    if (!user || !user.password) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401, headers }
-      );
+    if (!user || !user.hashedPassword) {
+      return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
-    const passwordMatch = await compare(password, user.password);
+    const passwordMatch = await compare(password, user.hashedPassword);
 
     if (!passwordMatch) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401, headers }
-      );
+      return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
     // Create JWT token
@@ -78,9 +60,7 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     console.error("[LOGIN_ERROR]", error);
-    return NextResponse.json(
-      { error: "Internal Error" },
-      { status: 500, headers }
-    );
+    const headers = await cors(req);
+    return new NextResponse("Internal Error", { status: 500, headers });
   }
 }
