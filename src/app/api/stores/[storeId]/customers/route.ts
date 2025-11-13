@@ -5,9 +5,10 @@ import prismadb from "@/lib/prismadb";
 
 export async function GET(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
+    const { storeId } = await params;
     const users = await prismadb.user.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -23,9 +24,10 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: { storeId: string } }
+  { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
+    const { storeId } = await params;
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
 

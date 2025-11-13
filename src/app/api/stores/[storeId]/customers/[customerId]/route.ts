@@ -4,9 +4,10 @@ import prismadb from "@/lib/prismadb";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { storeId: string; customerId: string } }
+  { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
+    const { storeId, customerId } = await params;
     const body = await req.json();
     const { name, email, role } = body;
 
@@ -14,13 +15,13 @@ export async function PATCH(
       return new NextResponse("Name and email are required", { status: 400 });
     }
 
-    if (!params.customerId) {
+    if (!customerId) {
       return new NextResponse("Customer ID is required", { status: 400 });
     }
 
     const customer = await prismadb.user.update({
       where: {
-        id: params.customerId,
+        id: customerId,
       },
       data: {
         name,
@@ -38,16 +39,17 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { storeId: string; customerId: string } }
+  { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
-    if (!params.customerId) {
+    const { storeId, customerId } = await params;
+    if (!customerId) {
       return new NextResponse("Customer ID is required", { status: 400 });
     }
 
     const customer = await prismadb.user.delete({
       where: {
-        id: params.customerId,
+        id: customerId,
       },
     });
 
