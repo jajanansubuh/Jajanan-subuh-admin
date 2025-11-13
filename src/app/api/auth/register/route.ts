@@ -4,7 +4,13 @@ import { cors } from "@/lib/cors";
 
 export async function OPTIONS(req: Request) {
   const headers = await cors(req);
-  return NextResponse.json({}, { headers });
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      ...headers,
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }
 
 export async function POST(req: Request) {
