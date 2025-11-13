@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
