@@ -19,18 +19,19 @@ export async function POST(req: Request) {
     if (!email || !password) {
       return new NextResponse("Missing fields", { status: 400, headers });
     }
-    
+
     const user = await prismadb.user.findUnique({
       where: {
         email
       }
     });
 
-    if (!user || !user.hashedPassword) {
+    // The User model uses `password` (hashed) field in Prisma schema
+    if (!user || !user.password) {
       return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
-    const passwordMatch = await compare(password, user.hashedPassword);
+    const passwordMatch = await compare(password, user.password);
 
     if (!passwordMatch) {
       return new NextResponse("Invalid credentials", { status: 401, headers });
