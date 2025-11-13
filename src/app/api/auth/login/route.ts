@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const headers = await cors(req);
 
   try {
-    const { default: prismadb } = await import("@/lib/prismadb");
+  const prismadb = (await import("@/lib/prismadb")).default;
     
     const body = await req.json();
     const { email, password } = body;
