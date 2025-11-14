@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = await params;
+    await params; // consume params to satisfy Next.js signature
     const users = await prismadb.user.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -27,7 +27,7 @@ export async function POST(
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { storeId } = await params;
+    await params; // consume params to satisfy Next.js signature
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
 

@@ -7,7 +7,7 @@ export async function PATCH(
   { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
-    const { storeId, customerId } = await params;
+    const { customerId } = await params;
     const body = await req.json();
     const { name, email, role } = body;
 
@@ -42,7 +42,7 @@ export async function DELETE(
   { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
-    const { storeId, customerId } = await params;
+    const { customerId } = await params;
     if (!customerId) {
       return new NextResponse("Customer ID is required", { status: 400 });
     }

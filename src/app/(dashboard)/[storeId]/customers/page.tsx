@@ -14,17 +14,26 @@ import { AlertModal } from "@/components/modals/alert-modal";
 export default function CustomersPage({
   params
 }: {
-  params: { storeId: string }
+  params: Promise<{ storeId: string }>
 }) {
+  const [storeId, setStoreId] = useState<string>("");
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomersColumn | null>(null);
 
+  useEffect(() => {
+    void (async () => {
+      const resolvedParams = await params;
+      setStoreId(resolvedParams.storeId);
+    })();
+  }, [params]);
+
   const fetchCustomers = useCallback(async () => {
+    if (!storeId) return;
     try {
-      const response = await fetch(`/api/stores/${params.storeId}/customers`);
+      const response = await fetch(`/api/stores/${storeId}/customers`);
       const data = await response.json();
       // assume API returns correct shape; coerce to CustomersColumn[]
       setCustomers((data as unknown) as CustomersColumn[]);
@@ -34,7 +43,7 @@ export default function CustomersPage({
     } finally {
       setLoading(false);
     }
-  }, [params.storeId]);
+  }, [storeId]);
 
   useEffect(() => {
     void fetchCustomers();
@@ -53,7 +62,7 @@ export default function CustomersPage({
   const handleDelete = async () => {
     if (!selectedCustomer) return;
     try {
-      await fetch(`/api/stores/${params.storeId}/customers/${selectedCustomer.id}`, {
+      await fetch(`/api/stores/${storeId}/customers/${selectedCustomer.id}`, {
         method: "DELETE"
       });
       toast.success("Customer deleted successfully");
@@ -70,7 +79,7 @@ export default function CustomersPage({
   const onSubmit = async (data: Omit<CustomersColumn, 'id' | 'createdAt'>) => {
     try {
       if (selectedCustomer) {
-        await fetch(`/api/stores/${params.storeId}/customers/${selectedCustomer.id}`, {
+        await fetch(`/api/stores/${storeId}/customers/${selectedCustomer.id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -78,7 +87,7 @@ export default function CustomersPage({
           body: JSON.stringify(data),
         });
       } else {
-        await fetch(`/api/stores/${params.storeId}/customers`, {
+        await fetch(`/api/stores/${storeId}/customers`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
