@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 
-import prismadb from "@/lib/prismadb";
-
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    await params; // consume params to satisfy Next.js signature
+    const { default: prismadb } = await import("@/lib/prismadb");
+    await params; // params needed for route segment but not used
     const users = await prismadb.user.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -27,7 +26,8 @@ export async function POST(
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    await params; // consume params to satisfy Next.js signature
+    const { default: prismadb } = await import("@/lib/prismadb");
+    await params; // params needed for route segment but not used
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
 

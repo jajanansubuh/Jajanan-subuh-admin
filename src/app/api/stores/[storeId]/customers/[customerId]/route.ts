@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 
-import prismadb from "@/lib/prismadb";
-
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
+    const { default: prismadb } = await import("@/lib/prismadb");
     const { customerId } = await params;
     const body = await req.json();
     const { name, email, role } = body;
@@ -42,6 +41,7 @@ export async function DELETE(
   { params }: { params: Promise<{ storeId: string; customerId: string }> }
 ) {
   try {
+    const { default: prismadb } = await import("@/lib/prismadb");
     const { customerId } = await params;
     if (!customerId) {
       return new NextResponse("Customer ID is required", { status: 400 });
