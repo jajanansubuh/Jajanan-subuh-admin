@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
+      console.warn("[LOGIN] Missing fields:", { email: !!email, password: !!password });
       return new NextResponse("Missing fields", { status: 400, headers });
     }
 
@@ -28,12 +29,14 @@ export async function POST(req: Request) {
 
     // The User model uses `password` (hashed) field in Prisma schema
     if (!user || !user.password) {
+      console.warn("[LOGIN] User not found or no password:", email);
       return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
     const passwordMatch = await compare(password, user.password);
 
     if (!passwordMatch) {
+      console.warn("[LOGIN] Password mismatch for:", email);
       return new NextResponse("Invalid credentials", { status: 401, headers });
     }
 
@@ -58,10 +61,12 @@ export async function POST(req: Request) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
+    console.log("[LOGIN] User logged in successfully:", email);
     return response;
   } catch (error) {
     console.error("[LOGIN_ERROR]", error);
+    console.error("[LOGIN_ERROR] Request origin:", req.headers.get("origin"));
     const headers = await cors(req);
-    return new NextResponse("Internal Error", { status: 500, headers });
+    return new NextResponse(`Internal Error: ${error instanceof Error ? error.message : 'Unknown'}`, { status: 500, headers });
   }
 }

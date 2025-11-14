@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     const { email, password, name } = body;
 
     if (!email || !password || !name) {
+      console.warn("[REGISTER] Missing fields:", { email: !!email, password: !!password, name: !!name });
       return new NextResponse("Missing fields", { status: 400, headers });
     }
 
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
     });
 
     if (existingUser) {
+      console.warn("[REGISTER] Email already exists:", email);
       return new NextResponse("Email already exists", { status: 400, headers });
     }
 
@@ -42,13 +44,15 @@ export async function POST(req: Request) {
       }
     });
 
+    console.log("[REGISTER] User created successfully:", { id: user.id, email: user.email });
     return NextResponse.json(
       { user: { id: user.id, name: user.name, email: user.email } },
       { headers }
     );
   } catch (error) {
     console.error("[REGISTRATION_ERROR]", error);
+    console.error("[REGISTRATION_ERROR] Request origin:", req.headers.get("origin"));
     const headers = await cors(req);
-    return new NextResponse("Internal Error", { status: 500, headers });
+    return new NextResponse(`Internal Error: ${error instanceof Error ? error.message : 'Unknown'}`, { status: 500, headers });
   }
 }
