@@ -14,43 +14,44 @@ export async function POST(req: Request) {
     const headers = await cors(req);
     
     const body = await req.json();
-    const { email, password } = body;
+  let { email } = body;
+  const password = body.password;
 
     if (!email || !password) {
       console.warn("[LOGIN] Missing fields:", { email: !!email, password: !!password });
-      return new NextResponse("Missing fields", { status: 400, headers });
+      return NextResponse.json({ error: "Missing fields" }, { status: 400, headers });
     }
 
+    // Normalize email for lookup
+    email = String(email).toLowerCase().trim();
+
     const user = await prismadb.user.findUnique({
-      where: {
-        email
-      }
+      where: { email }
     });
 
     // The User model uses `password` (hashed) field in Prisma schema
     if (!user || !user.password) {
       console.warn("[LOGIN] User not found or no password:", email);
-      return new NextResponse("Invalid credentials", { status: 401, headers });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401, headers });
     }
 
     const passwordMatch = await compare(password, user.password);
 
     if (!passwordMatch) {
       console.warn("[LOGIN] Password mismatch for:", email);
-      return new NextResponse("Invalid credentials", { status: 401, headers });
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401, headers });
     }
 
     // Create JWT token
-    const token = sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: '7d' }
-    );
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('[LOGIN] Missing JWT_SECRET env var');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500, headers });
+    }
 
-    const response = NextResponse.json(
-      { user: { id: user.id, name: user.name, email: user.email } },
-      { headers }
-    );
+    const token = sign({ userId: user.id, email: user.email, role: user.role }, jwtSecret, { expiresIn: '7d' });
+
+    const response = NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } }, { headers });
 
     // Set JWT token in HTTP-only cookie
     response.cookies.set('token', token, {
