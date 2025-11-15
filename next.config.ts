@@ -1,33 +1,42 @@
 import type { NextConfig } from "next";
 
+
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        // port: "400",
-        pathname: "/**", // all paths under it
+        pathname: "/**",
       },
     ],
   },
   allowedDevOrigins: ["https://your-ngrok-subdomain.ngrok-free.app"],
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "https://jajanan-subuh.vercel.app",
+          },
+          {
+            key: "Access-Control-Allow-Credentials",
+            value: "true",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "X-Requested-With, Content-Type, Authorization",
+          },
+        ],
+      },
+    ];
+  },
 };
-// module.exports = {
-//   async headers() {
-//     return [
-//       {
-//         source: "/(.*)",
-//         headers: [
-//           {
-//             key: "Content-Security-Policy",
-//             value:
-//               "connect-src 'self' https://www.googleadservices.com https://signalera-pa.clients6.google.com",
-//           },
-//         ],
-//       },
-//     ];
-//   },
-// };
+
 export default nextConfig;
