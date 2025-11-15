@@ -15,10 +15,15 @@ export async function POST(req: Request) {
     const { default: prismadb } = await import("@/lib/prismadb");
     const headers = await cors(req);
 
+    // Cek apakah origin diizinkan
+    if (!headers["Access-Control-Allow-Origin"] || headers["Access-Control-Allow-Origin"] === "") {
+      return NextResponse.json({ error: "CORS: Origin not allowed" }, { status: 403, headers });
+    }
+
     const body = await req.json();
-  let { email } = body;
-  const password = body.password;
-  const name = body.name;
+    let { email } = body;
+    const password = body.password;
+    const name = body.name;
 
     // Basic required fields
     if (!email || !password || !name) {

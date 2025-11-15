@@ -31,10 +31,16 @@ export async function cors(req: Request): Promise<Record<string, string>> {
       // In development allow the incoming origin for easier debugging
       headers["Access-Control-Allow-Origin"] = origin;
     } else {
-      // In production: origin is not allowed — do not set wildcard; log a warning
+      // In production: origin is not allowed — set explicit error header
+      headers["Access-Control-Allow-Origin"] = "";
+      headers["Access-Control-Allow-Credentials"] = "false";
       console.warn('[CORS] Request origin not allowed:', origin);
-      // Optionally you could set headers["Access-Control-Allow-Origin"] = origin;
-      // but it's safer to NOT allow unknown origins in production.
+    }
+  } else {
+    // No origin header, block by default in production
+    if (process.env.NODE_ENV === 'production') {
+      headers["Access-Control-Allow-Origin"] = "";
+      headers["Access-Control-Allow-Credentials"] = "false";
     }
   }
 
