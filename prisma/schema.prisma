@@ -141,6 +141,11 @@ model User {
   email     String   @unique
   password  String
   role      String   @default("CUSTOMER") // Can be "ADMIN", "CUSTOMER"
+  // Customer-specific fields (from store registration)
+  phone     String?
+  address   String?
+  gender    String?  // MALE, FEMALE, OTHER
+  storeId   String?  // Link to which store this customer belongs to
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   reviews   Review[]

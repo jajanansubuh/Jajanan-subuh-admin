@@ -24,6 +24,11 @@ export async function POST(req: Request) {
     let { email } = body;
     const password = body.password;
     const name = body.name;
+    // Optional customer fields
+    const phone = body.phone;
+    const address = body.address;
+    const gender = body.gender;
+    const storeId = body.storeId;
 
     // Basic required fields
     if (!email || !password || !name) {
@@ -50,7 +55,11 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
-        role: "CUSTOMER" // Default role for store users
+        role: "CUSTOMER", // Default role for store users
+        phone: phone || null,
+        address: address || null,
+        gender: gender || null,
+        storeId: storeId || null,
       }
     });
 
