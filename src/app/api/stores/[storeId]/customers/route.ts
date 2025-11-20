@@ -17,7 +17,7 @@ export async function GET(
     return NextResponse.json(users);
   } catch (error) {
     console.log('[CUSTOMERS_GET]', error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -32,7 +32,7 @@ export async function POST(
     const { name, email, role, password = "password123" } = body;
 
     if (!name || !email) {
-      return new NextResponse("Name and email are required", { status: 400 });
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -49,6 +49,6 @@ export async function POST(
     return NextResponse.json(customer);
   } catch (error) {
     console.log('[CUSTOMERS_POST]', error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 };

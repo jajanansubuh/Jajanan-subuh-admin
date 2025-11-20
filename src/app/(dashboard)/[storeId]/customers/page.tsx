@@ -32,14 +32,30 @@ export default function CustomersPage({
 
   const fetchCustomers = useCallback(async () => {
     if (!storeId) return;
+    setLoading(true);
     try {
       const response = await fetch(`/api/stores/${storeId}/customers`);
-      const data = await response.json();
-      // assume API returns correct shape; coerce to CustomersColumn[]
-      setCustomers((data as unknown) as CustomersColumn[]);
+      // try parse json, but guard against non-json body
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const msg = data && typeof data === 'object' && 'error' in data ? (data as any).error : 'Failed to load customers';
+        toast.error(msg);
+        setCustomers([]);
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        toast.error('Unexpected response from server');
+        setCustomers([]);
+        return;
+      }
+
+      setCustomers(data as CustomersColumn[]);
     } catch (err) {
       console.error('Error fetching customers:', err);
       toast.error("Failed to load customers");
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
