@@ -17,13 +17,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 
 export type CustomersColumn = {
   id: string
   name: string
   email: string
-  role: "CUSTOMER" | "ADMIN"
+  address?: string | null
+  phone?: string | null
+  gender?: string | null
+  role?: "CUSTOMER" | "ADMIN"
   createdAt: string
 }
 
@@ -67,20 +69,23 @@ export const columns: ColumnDef<CustomersColumn>[] = [
     header: "Name",
   },
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "address",
+    header: "Address",
+    cell: ({ row }) => row.getValue("address") || "",
   },
   {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => {
-      const role = row.getValue("role") as "CUSTOMER" | "ADMIN"
-      return (
-        <Badge variant={role === "ADMIN" ? "destructive" : "default"}>
-          {role}
-        </Badge>
-      )
-    }
+    accessorKey: "phone",
+    header: "Phone",
+    cell: ({ row }) => row.getValue("phone") || "",
+  },
+  {
+    accessorKey: "gender",
+    header: "Gender",
+    cell: ({ row }) => row.getValue("gender") || "",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
   },
   {
     accessorKey: "createdAt",

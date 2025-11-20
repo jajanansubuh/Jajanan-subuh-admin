@@ -33,13 +33,16 @@ import {
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-  role: z.enum(["ADMIN", "CUSTOMER"]),
+  role: z.enum(["ADMIN", "CUSTOMER"]).optional(),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  gender: z.string().optional().nullable(),
 });
 
 type CustomerFormValues = z.infer<typeof formSchema>;
 
 interface CustomerFormProps {
-  initialData: CustomerFormValues | null;
+  initialData: Partial<CustomerFormValues> | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CustomerFormValues) => void;
@@ -59,6 +62,9 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
       name: "",
       email: "",
       role: "CUSTOMER",
+      address: "",
+      phone: "",
+      gender: "",
     },
   });
 
@@ -142,6 +148,49 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                       <SelectItem value="ADMIN">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    {/* coerce null/undefined to empty string to satisfy Input value type */}
+                    <Input disabled={loading} placeholder="Address" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading} placeholder="Phone" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <FormControl>
+                    <Input disabled={loading} placeholder="Gender" {...field} value={field.value ?? ""} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

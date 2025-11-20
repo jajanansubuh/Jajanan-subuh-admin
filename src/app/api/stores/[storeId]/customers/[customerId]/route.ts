@@ -36,9 +36,16 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, email, role, password } = body;
+    const { name, email, role, password } = body as { name?: string; email?: string; role?: "CUSTOMER" | "ADMIN"; password?: string };
 
-    const data: any = {};
+    type UpdateUserPayload = Partial<{
+      name: string;
+      email: string;
+      role: "CUSTOMER" | "ADMIN";
+      password: string;
+    }>;
+
+    const data: UpdateUserPayload = {};
     if (name) data.name = name;
     if (email) data.email = email;
     if (role) data.role = role;

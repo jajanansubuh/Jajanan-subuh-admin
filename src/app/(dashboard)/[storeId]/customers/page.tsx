@@ -1,9 +1,6 @@
 "use client";
-import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
@@ -95,23 +92,19 @@ export default function CustomersPage({
 
   const onSubmit = async (data: Omit<CustomersColumn, 'id' | 'createdAt'>) => {
     try {
-      if (selectedCustomer) {
-        await fetch(`/api/stores/${storeId}/customers/${selectedCustomer.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-      } else {
-        await fetch(`/api/stores/${storeId}/customers`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
+      // Admin is not allowed to create customers here — only edit existing store-registered users.
+      if (!selectedCustomer) {
+        toast.error("Creating customers from admin is disabled. Customers must register via the store.");
+        return;
       }
+
+      await fetch(`/api/stores/${storeId}/customers/${selectedCustomer.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
       await fetchCustomers();
     } catch (error) {
       console.error('Error saving customer:', error);
@@ -139,11 +132,7 @@ export default function CustomersPage({
       <div className="flex-col">
         <div className="flex-1 space-y-4 p-8 pt-6">
           <div className="flex items-center justify-between">
-            <Heading title="Customers" description="Manage your store customers" />
-            <Button onClick={() => setOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Customer
-            </Button>
+            <Heading title={`Customers (${customers.length})`} description="Manage your store customers" />
           </div>
           <Separator />
             {!loading ? (
