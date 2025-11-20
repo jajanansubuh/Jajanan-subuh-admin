@@ -20,11 +20,12 @@ export async function GET(req: Request) {
     };
 
     // Try a lightweight connectivity check if client exposes $queryRaw
-    if (prismadb && typeof (prismadb as { $queryRaw?: Function }).$queryRaw === "function") {
+    type PrismaLike = { $queryRaw?: (...args: unknown[]) => Promise<unknown> };
+    const maybePrisma = prismadb as PrismaLike | undefined;
+    if (maybePrisma?.$queryRaw && typeof maybePrisma.$queryRaw === "function") {
       try {
         // run a safe simple query depending on DB; use raw to avoid model dependency
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        await (prismadb as { $queryRaw: (...args: unknown[]) => Promise<unknown> }).$queryRaw`SELECT 1`;
+        await maybePrisma.$queryRaw`SELECT 1`;
         result.dbReachable = true;
       } catch (err: unknown) {
         result.dbReachable = false;
