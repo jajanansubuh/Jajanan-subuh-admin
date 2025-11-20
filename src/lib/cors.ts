@@ -17,9 +17,13 @@ export async function cors(req: Request): Promise<Record<string, string>> {
   // Set default CORS headers
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    // include common headers used by clients; header names are case-insensitive
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, x-debug, X-Api-Version",
     "Access-Control-Allow-Credentials": "true",
   };
+
+  // Allow browsers to cache preflight for 1 day
+  headers["Access-Control-Max-Age"] = "86400";
 
   // Always set Vary: Origin so CDNs/cache won't wrongly cache wildcard responses
   headers['Vary'] = 'Origin';
