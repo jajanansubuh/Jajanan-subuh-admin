@@ -10,12 +10,23 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { default: prismadb } = await import("@/lib/prismadb");
+    type UserMin = { id: string; name: string; email: string; password?: string; role?: string };
+    type PrismaClientLike = { user?: { findUnique?: (args: unknown) => Promise<UserMin | null> } };
+
+    let prismadb: PrismaClientLike | undefined;
+    try {
+      const imported = await import("@/lib/prismadb");
+      prismadb = imported?.default;
+    } catch (impErr) {
+      console.error('[LOGIN] prismadb import failed at runtime:', String(impErr));
+      prismadb = undefined;
+    }
+
     const headers = await cors(req);
-    
+
     const body = await req.json();
-  let { email } = body;
-  const password = body.password;
+    let { email } = body;
+    const password = body.password as string | undefined;
 
     if (!email || !password) {
       console.warn("[LOGIN] Missing fields:", { email: !!email, password: !!password });
@@ -25,9 +36,28 @@ export async function POST(req: Request) {
     // Normalize email for lookup
     email = String(email).toLowerCase().trim();
 
-    const user = await prismadb.user.findUnique({
-      where: { email }
-    });
+    let user: UserMin | null = null;
+    if (prismadb) {
+      user = await prismadb.user?.findUnique?.({ where: { email } }) ?? null;
+    } else {
+      console.warn('[LOGIN] USING_PG_FALLBACK: attempting direct pg query');
+      const { Client } = await import('pg');
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+      const connectWithTimeout = async (ms: number) => {
+        return await Promise.race([
+          client.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('pg connect timeout')), ms)),
+        ]);
+      };
+      try {
+        await connectWithTimeout(7000);
+        const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
+        const rc = res.rowCount ?? 0;
+        if (rc > 0) user = res.rows[0] as unknown as UserMin;
+      } finally {
+        await client.end();
+      }
+    }
 
     // The User model uses `password` (hashed) field in Prisma schema
     if (!user || !user.password) {
