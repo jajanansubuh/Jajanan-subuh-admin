@@ -7,8 +7,14 @@ export async function GET(
 ) {
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
-    await params; // params needed for route segment but not used
+    const { storeId } = await params;
+
+    if (!storeId) {
+      return NextResponse.json({ error: 'Store id dibutuhkan' }, { status: 400 });
+    }
+
     const users = await prismadb.user.findMany({
+      where: { storeId },
       orderBy: {
         createdAt: 'desc'
       }
@@ -32,7 +38,12 @@ export async function POST(
 ) {
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
-    await params; // params needed for route segment but not used
+    const { storeId } = await params;
+
+    if (!storeId) {
+      return NextResponse.json({ error: 'Store id dibutuhkan' }, { status: 400 });
+    }
+
     const body = await req.json();
     const { name, email, role, password = "password123" } = body;
 
@@ -48,6 +59,7 @@ export async function POST(
         email,
         role: role as "ADMIN" | "CUSTOMER",
         password: hashedPassword,
+        storeId,
       },
     });
 
