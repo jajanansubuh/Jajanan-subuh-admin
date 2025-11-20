@@ -12,7 +12,15 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    let prismadb: any | undefined;
+    type UserMin = { id: string; name: string; email: string; role?: string };
+    type PrismaClientLike = {
+      user?: {
+        findUnique?: (args: unknown) => Promise<UserMin | null>;
+        create?: (args: unknown) => Promise<UserMin>;
+      };
+    };
+
+    let prismadb: PrismaClientLike | undefined;
     try {
       const imported = await import("@/lib/prismadb");
       prismadb = imported?.default;
@@ -49,9 +57,9 @@ export async function POST(req: Request) {
     email = String(email).toLowerCase().trim();
 
     // Try via Prisma client if available, otherwise fall back to pg queries
-    let existingUser: any | null = null;
+    let existingUser: UserMin | null = null;
     if (prismadb) {
-      existingUser = await prismadb.user.findUnique({ where: { email } });
+      existingUser = await prismadb.user?.findUnique?.({ where: { email } }) ?? null;
     } else {
       console.warn('[REGISTER] USING_PG_FALLBACK: attempting direct pg queries');
       // Fallback: use node-postgres to query the users table directly
@@ -68,7 +76,7 @@ export async function POST(req: Request) {
         await connectWithTimeout(7000);
         const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
         const rc = res.rowCount ?? 0;
-        if (rc > 0) existingUser = res.rows[0];
+        if (rc > 0) existingUser = res.rows[0] as unknown as UserMin;
       } finally {
         await client.end();
       }
@@ -81,9 +89,9 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    let user: any;
+    let user: UserMin;
     if (prismadb) {
-      user = await prismadb.user.create({
+      user = await prismadb.user!.create!({
         data: {
           name,
           email,
@@ -114,7 +122,7 @@ export async function POST(req: Request) {
           'INSERT INTO "User" ("id","name","email","password","role","phone","address","gender","storeId","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,now(),now()) RETURNING id, name, email, role',
           [id, name, email, hashedPassword, 'CUSTOMER', phone || null, address || null, gender || null, storeId || null]
         );
-        user = insert.rows[0];
+        user = insert.rows[0] as unknown as UserMin;
       } finally {
         await client.end();
       }
