@@ -39,7 +39,8 @@ export default function CustomersPage({
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const msg = data && typeof data === 'object' && 'error' in data ? (data as any).error : 'Failed to load customers';
+        const isErrorObject = (v: unknown): v is { error?: unknown } => typeof v === 'object' && v !== null && 'error' in (v as Record<string, unknown>);
+        const msg = isErrorObject(data) && typeof data.error === 'string' ? data.error : 'Failed to load customers';
         toast.error(msg);
         setCustomers([]);
         return;
