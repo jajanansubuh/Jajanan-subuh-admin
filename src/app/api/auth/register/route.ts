@@ -53,14 +53,22 @@ export async function POST(req: Request) {
     if (prismadb) {
       existingUser = await prismadb.user.findUnique({ where: { email } });
     } else {
+      console.warn('[REGISTER] USING_PG_FALLBACK: attempting direct pg queries');
       // Fallback: use node-postgres to query the users table directly
       const { Client } = await import('pg');
       const client = new Client({ connectionString: process.env.DATABASE_URL });
+      // add a short connect timeout to avoid Vercel function hang
+      const connectWithTimeout = async (ms: number) => {
+        return await Promise.race([
+          client.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('pg connect timeout')), ms)),
+        ]);
+      };
       try {
-        await client.connect();
-  const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
-  const rc = res.rowCount ?? 0;
-  if (rc > 0) existingUser = res.rows[0];
+        await connectWithTimeout(7000);
+        const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
+        const rc = res.rowCount ?? 0;
+        if (rc > 0) existingUser = res.rows[0];
       } finally {
         await client.end();
       }
@@ -89,11 +97,18 @@ export async function POST(req: Request) {
       });
     } else {
       // Fallback insertion via pg
+      console.warn('[REGISTER] USING_PG_FALLBACK: attempting direct pg insert');
       const { Client } = await import('pg');
       const { randomUUID } = await import('crypto');
       const client = new Client({ connectionString: process.env.DATABASE_URL });
+      const connectWithTimeout = async (ms: number) => {
+        return await Promise.race([
+          client.connect(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('pg connect timeout')), ms)),
+        ]);
+      };
       try {
-        await client.connect();
+        await connectWithTimeout(7000);
         const id = randomUUID();
         const insert = await client.query(
           'INSERT INTO "User" ("id","name","email","password","role","phone","address","gender","storeId","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,now(),now()) RETURNING id, name, email, role',
