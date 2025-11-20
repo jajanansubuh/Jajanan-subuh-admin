@@ -31,7 +31,14 @@ export default function CustomerClient({
 
       if (!response.ok) {
         // If the server returned an error object, show it
-        const msg = data && typeof data === 'object' && 'error' in data ? (data as any).error : 'Failed to load customers';
+        const isErrorShape = (v: unknown): v is { error?: unknown } =>
+          typeof v === 'object' && v !== null && Object.prototype.hasOwnProperty.call(v, 'error');
+
+        let msg = 'Failed to load customers';
+        if (isErrorShape(data) && typeof (data as { error?: unknown }).error === 'string') {
+          msg = String((data as { error?: unknown }).error);
+        }
+
         console.error('[CUSTOMER_CLIENT] server error', data);
         toast.error(String(msg));
         setCustomers([]);
