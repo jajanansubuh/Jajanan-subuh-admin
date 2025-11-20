@@ -12,7 +12,16 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { default: prismadb } = await import("@/lib/prismadb");
+    let prismadb: any | undefined;
+    try {
+      const imported = await import("@/lib/prismadb");
+      prismadb = imported?.default;
+    } catch (impErr) {
+      // log import error and proceed to fallback
+      console.error('[REGISTER] prismadb import failed at runtime:', String(impErr));
+      prismadb = undefined;
+    }
+
     const headers = await cors(req);
 
     // Cek apakah origin diizinkan
@@ -39,9 +48,22 @@ export async function POST(req: Request) {
     // Normalize email for lookups/storage
     email = String(email).toLowerCase().trim();
 
-    const existingUser = await prismadb.user.findUnique({
-      where: { email }
-    });
+    // Try via Prisma client if available, otherwise fall back to pg queries
+    let existingUser: any | null = null;
+    if (prismadb) {
+      existingUser = await prismadb.user.findUnique({ where: { email } });
+    } else {
+      // Fallback: use node-postgres to query the users table directly
+      const { Client } = await import('pg');
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+      try {
+        await client.connect();
+        const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
+        if (res.rowCount > 0) existingUser = res.rows[0];
+      } finally {
+        await client.end();
+      }
+    }
 
     if (existingUser) {
       console.warn("[REGISTER] Email already exists:", email);
@@ -50,18 +72,37 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await prismadb.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: "CUSTOMER", // Default role for store users
-        phone: phone || null,
-        address: address || null,
-        gender: gender || null,
-        storeId: storeId || null,
+    let user: any;
+    if (prismadb) {
+      user = await prismadb.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role: "CUSTOMER",
+          phone: phone || null,
+          address: address || null,
+          gender: gender || null,
+          storeId: storeId || null,
+        }
+      });
+    } else {
+      // Fallback insertion via pg
+      const { Client } = await import('pg');
+      const { randomUUID } = await import('crypto');
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+      try {
+        await client.connect();
+        const id = randomUUID();
+        const insert = await client.query(
+          'INSERT INTO "User" ("id","name","email","password","role","phone","address","gender","storeId","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,now(),now()) RETURNING id, name, email, role',
+          [id, name, email, hashedPassword, 'CUSTOMER', phone || null, address || null, gender || null, storeId || null]
+        );
+        user = insert.rows[0];
+      } finally {
+        await client.end();
       }
-    });
+    }
 
     // Sign JWT and set cookie so new users are authenticated immediately
     const jwtSecret = process.env.JWT_SECRET;
