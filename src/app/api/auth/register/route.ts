@@ -58,8 +58,9 @@ export async function POST(req: Request) {
       const client = new Client({ connectionString: process.env.DATABASE_URL });
       try {
         await client.connect();
-        const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
-        if (res.rowCount > 0) existingUser = res.rows[0];
+  const res = await client.query('SELECT id, name, email, password, role FROM "User" WHERE email = $1', [email]);
+  const rc = res.rowCount ?? 0;
+  if (rc > 0) existingUser = res.rows[0];
       } finally {
         await client.end();
       }
