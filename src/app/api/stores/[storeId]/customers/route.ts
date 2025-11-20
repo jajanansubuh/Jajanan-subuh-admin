@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
 
 export async function GET(
   req: Request,
@@ -53,7 +52,9 @@ export async function POST(
       return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+  // Dynamically import bcrypt to avoid native import-time failures on GET requests
+  const { default: bcrypt } = await import("bcrypt");
+  const hashedPassword = await bcrypt.hash(password, 10);
 
     const customer = await prismadb.user.create({
       data: {

@@ -22,8 +22,29 @@ export default function CustomerClient({
 
   const fetchCustomers = useCallback(async () => {
     try {
+      // Debug: show which storeId we're requesting
+      console.log('[CUSTOMER_CLIENT] fetching customers for storeId=', params.storeId);
       const response = await fetch(`/api/stores/${params.storeId}/customers`);
-      const data = await response.json();
+      // Log status for easier debugging
+      console.log('[CUSTOMER_CLIENT] response status=', response.status);
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        // If the server returned an error object, show it
+        const msg = data && typeof data === 'object' && 'error' in data ? (data as any).error : 'Failed to load customers';
+        console.error('[CUSTOMER_CLIENT] server error', data);
+        toast.error(String(msg));
+        setCustomers([]);
+        return;
+      }
+
+      if (!Array.isArray(data)) {
+        console.error('[CUSTOMER_CLIENT] unexpected response', data);
+        toast.error('Unexpected response from server');
+        setCustomers([]);
+        return;
+      }
+
       setCustomers(data);
     } catch {
       toast.error("Failed to load customers");
