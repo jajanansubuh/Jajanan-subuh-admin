@@ -4,8 +4,7 @@ import { toast } from "react-hot-toast";
 import { DataTable } from "@/components/ui/data-table";
 import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
-import { CustomerForm } from "./components/customer-form";
-import { columns, CustomersColumn } from "./components/columns";
+import { CustomerForm, columns, CustomersColumn } from "./components";
 import { AlertModal } from "@/components/modals/alert-modal";
 
 export default function CustomersPage({
