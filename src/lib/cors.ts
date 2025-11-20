@@ -5,7 +5,8 @@ export async function cors(req: Request): Promise<Record<string, string>> {
   const allowedOrigins = [
     'http://localhost:3001', // Store development
     'http://localhost:3000', // Admin development
-    'https://jajanan-subuh.vercel.app', // Store production
+    'https://jajanan-subuh.vercel.app', // Store production (legacy)
+    'https://jajanan-subuh-store.vercel.app', // Store production (current)
     'https://jajanan-subuh-admin.vercel.app', // Admin production
   ];
 
@@ -34,7 +35,7 @@ export async function cors(req: Request): Promise<Record<string, string>> {
       // In production: origin is not allowed — set explicit error header
       headers["Access-Control-Allow-Origin"] = "";
       headers["Access-Control-Allow-Credentials"] = "false";
-      console.warn('[CORS] Request origin not allowed:', origin);
+      console.warn('[CORS] Request origin not allowed:', origin, 'normalized:', normalizedOrigin);
     }
   } else {
     // No origin header, block by default in production
