@@ -8,6 +8,8 @@ export async function GET(
   try {
     const { default: prismadb } = await import("@/lib/prismadb");
     const { storeId } = await params;
+    // Temporary debug log to trace incoming requests and storeId
+    console.log('[CUSTOMERS_GET_REQUEST] storeId=', storeId);
 
     if (!storeId) {
       return NextResponse.json({ error: 'Store id dibutuhkan' }, { status: 400 });

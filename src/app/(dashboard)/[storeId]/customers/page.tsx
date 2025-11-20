@@ -24,6 +24,11 @@ export default function CustomersPage({
     void (async () => {
       const resolvedParams = await params;
       setStoreId(resolvedParams.storeId);
+      // Temporary debug log so we can see which storeId the page resolved and which API URL it will call.
+      // Check browser DevTools Console for this message when loading the page.
+      // This helps confirm the client is requesting the correct storeId.
+      // eslint-disable-next-line no-console
+      console.log('CUSTOMERS_PAGE resolved storeId=', resolvedParams.storeId, 'fetchUrl=', `/api/stores/${resolvedParams.storeId}/customers`);
     })();
   }, [params]);
 
