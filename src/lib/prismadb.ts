@@ -13,7 +13,23 @@ try {
   try {
     // fallback: try loading the generated client package placed under
     // `generated/prisma` (this repo uses prisma generator output to ../generated)
-    const generated = require('../../generated/prisma');
+    // When running from Next's build output the current file location may
+    // be under `.next/server/...` so a relative require can fail. Try
+    // resolving via process.cwd() as a more robust fallback.
+    let generated: any;
+    try {
+      generated = require('../../generated/prisma');
+    } catch (relErr) {
+      const path = require('path');
+      const absolutePath = path.join(process.cwd(), 'generated', 'prisma');
+      try {
+        generated = require(absolutePath);
+      } catch (absErr) {
+        // attach both errors to help debugging
+        console.error('[PRISMA_FALLBACK_ERRORS] relative:', relErr, 'absolute:', absErr);
+        throw absErr || relErr;
+      }
+    }
     PrismaClient = generated.PrismaClient || generated.default || generated;
   } catch (err2) {
     console.error('[PRISMA_IMPORT_ERROR] Could not load PrismaClient from @prisma/client or generated/prisma', err, err2);
