@@ -17,6 +17,11 @@ export async function GET(
     return NextResponse.json(users);
   } catch (error) {
     console.log('[CUSTOMERS_GET]', error);
+    // In development, include the error message in the JSON to aid debugging.
+    if (process.env.NODE_ENV !== 'production') {
+      const message = error instanceof Error ? error.message : String(error);
+      return NextResponse.json({ error: 'Internal error', detail: message }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
