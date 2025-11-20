@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json(store);
   } catch (error) {
     console.log("[STORE_GET]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -80,7 +80,7 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (error) {
     console.log("[STORE_PATCH]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -110,6 +110,6 @@ export async function DELETE(
     return NextResponse.json(store);
   } catch (error) {
     console.log("[STORE_DELETE]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

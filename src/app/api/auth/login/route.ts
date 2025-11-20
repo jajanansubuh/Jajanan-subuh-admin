@@ -98,6 +98,6 @@ export async function POST(req: Request) {
     console.error("[LOGIN_ERROR]", error);
     console.error("[LOGIN_ERROR] Request origin:", req.headers.get("origin"));
     const headers = await cors(req);
-    return new NextResponse(`Internal Error: ${error instanceof Error ? error.message : 'Unknown'}`, { status: 500, headers });
+    return NextResponse.json({ error: `Internal Error: ${error instanceof Error ? error.message : 'Unknown'}` }, { status: 500, headers });
   }
 }

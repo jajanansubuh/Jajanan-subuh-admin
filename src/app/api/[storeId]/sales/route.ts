@@ -281,7 +281,7 @@ export async function GET(
     });
   } catch (e) {
     console.error("[SALES_GET]", e);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -324,6 +324,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("[SALES_DELETE]", e);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

@@ -58,7 +58,7 @@ export async function POST(
     return NextResponse.json(banner);
   } catch (error) {
     console.log("[BANNERS_POST]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
@@ -82,6 +82,6 @@ export async function GET(
     return NextResponse.json(banner);
   } catch (error) {
     console.log("[BANNERS_GET]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

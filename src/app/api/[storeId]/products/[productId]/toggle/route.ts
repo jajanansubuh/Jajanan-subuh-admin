@@ -60,6 +60,6 @@ export async function PATCH(
     return NextResponse.json(product);
   } catch (error) {
     console.log("[PRODUCT_TOGGLE_PATCH]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

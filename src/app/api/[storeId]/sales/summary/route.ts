@@ -70,6 +70,6 @@ export async function GET(
     return NextResponse.json({ ok: true, data: results });
   } catch (e) {
     console.error("[SALES_SUMMARY_GET]", e);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
