@@ -75,7 +75,7 @@ export async function GET(
         const stack = error instanceof Error && error.stack ? error.stack : undefined;
         return NextResponse.json({ error: 'Internal error', detail: message, stack }, { status: 500 });
       }
-    } catch (e) {
+    } catch {
       // ignore any error while attempting to compute debug output
     }
 

@@ -4,7 +4,16 @@ import { PrismaClient } from '@prisma/client';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 if (!globalForPrisma.prisma) {
-  globalForPrisma.prisma = new PrismaClient();
+  // Override datasource URL at runtime so PrismaClient can connect even when
+  // schema.prisma does not include the `url` property (Prisma v6+ recommendation).
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    globalForPrisma.prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
+  } else {
+    // Fall back to default constructor; this will work in environments where
+    // the schema still provides the URL or Prisma is configured differently.
+    globalForPrisma.prisma = new PrismaClient();
+  }
 }
 
 const prismadb = globalForPrisma.prisma;
