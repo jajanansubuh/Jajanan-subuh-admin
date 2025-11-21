@@ -10,7 +10,7 @@ import { AlertModal } from "@/components/modals/alert-modal";
 export default function CustomersPage({
   params
 }: {
-  params: Promise<{ storeId: string }>
+  params: { storeId: string } | Promise<{ storeId: string }>
 }) {
   const [storeId, setStoreId] = useState<string>("");
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
@@ -22,12 +22,24 @@ export default function CustomersPage({
   useEffect(() => {
     void (async () => {
       const resolvedParams = await params;
-      setStoreId(resolvedParams.storeId);
-      // Temporary debug log so we can see which storeId the page resolved and which API URL it will call.
-      // Check browser DevTools Console for this message when loading the page.
-      // This helps confirm the client is requesting the correct storeId.
+      let resolvedStoreId = resolvedParams?.storeId;
+
+      // Fallback: if params didn't provide storeId (deployed environment mismatch),
+      // try extracting it from the URL path: .../<storeId>/customers
+      if (!resolvedStoreId && typeof window !== 'undefined') {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const customersIndex = parts.indexOf('customers');
+        if (customersIndex > 0) {
+          resolvedStoreId = parts[customersIndex - 1];
+        } else {
+          // fallback to first segment if structure differs
+          resolvedStoreId = parts[0] || '';
+        }
+      }
+
+      setStoreId(resolvedStoreId || '');
       // eslint-disable-next-line no-console
-      console.log('CUSTOMERS_PAGE resolved storeId=', resolvedParams.storeId, 'fetchUrl=', `/api/stores/${resolvedParams.storeId}/customers`);
+      console.log('CUSTOMERS_PAGE resolved storeId=', resolvedStoreId, 'fetchUrl=', `/api/stores/${resolvedStoreId}/customers`);
     })();
   }, [params]);
 
@@ -35,9 +47,16 @@ export default function CustomersPage({
     if (!storeId) return;
     setLoading(true);
     try {
-      const response = await fetch(`/api/stores/${storeId}/customers`);
+      const url = `/api/stores/${storeId}/customers`;
+      // client-side debug log for deployed fetch attempts
+      // eslint-disable-next-line no-console
+      console.log('CUSTOMERS_PAGE fetching customers from', url);
+      const response = await fetch(url);
       // try parse json, but guard against non-json body
       const data = await response.json().catch(() => null);
+
+      // eslint-disable-next-line no-console
+      console.log('CUSTOMERS_PAGE fetch status=', response.status, 'data=', data);
 
       if (!response.ok) {
         const isErrorObject = (v: unknown): v is { error?: unknown } => typeof v === 'object' && v !== null && 'error' in (v as Record<string, unknown>);
