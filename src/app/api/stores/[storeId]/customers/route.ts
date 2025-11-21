@@ -69,7 +69,7 @@ export async function GET(
     // without exposing details to all clients. Set `DEBUG_SECRET` in Vercel.
     try {
       const debugHeader = req.headers.get('x-debug');
-      const debugSecret = process.env.DEBUG_SECRET;
+      const debugSecret = (process.env as any)['DEBUG_SECRET'] as string | undefined;
       if (debugHeader && debugSecret && debugHeader === debugSecret) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error && error.stack ? error.stack : undefined;
