@@ -11,7 +11,7 @@ declare global {
 const globalForPrisma = globalThis as unknown as { __prismaClient?: PrismaClient };
 
 const getPrismaOptions = () => {
-  const url = (process.env as any)['DATABASE_URL'] as string | undefined;
+  const url = process.env.DATABASE_URL as string | undefined;
   if (url) {
     return { datasources: { db: { url } } };
   }
