@@ -61,12 +61,24 @@ export async function GET(
     // Return persisted users first, then inferred customers from orders
     return NextResponse.json([...users, ...inferredFromOrders]);
   } catch (error) {
-    console.log('[CUSTOMERS_GET]', error);
-    // In development, include the error message in the JSON to aid debugging.
-    if (process.env.NODE_ENV !== 'production') {
-      const message = error instanceof Error ? error.message : String(error);
-      return NextResponse.json({ error: 'Internal error', detail: message }, { status: 500 });
+    console.error('[CUSTOMERS_GET]', error);
+
+    // Allow controlled debugging in production: if the request includes the
+    // special header `x-debug` that matches `DEBUG_SECRET` env var, include
+    // the error detail in the JSON response so we can inspect runtime errors
+    // without exposing details to all clients. Set `DEBUG_SECRET` in Vercel.
+    try {
+      const debugHeader = req.headers.get('x-debug');
+      const debugSecret = process.env.DEBUG_SECRET;
+      if (debugHeader && debugSecret && debugHeader === debugSecret) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error && error.stack ? error.stack : undefined;
+        return NextResponse.json({ error: 'Internal error', detail: message, stack }, { status: 500 });
+      }
+    } catch (e) {
+      // ignore any error while attempting to compute debug output
     }
+
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
