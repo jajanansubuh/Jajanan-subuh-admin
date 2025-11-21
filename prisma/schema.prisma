@@ -5,9 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Connection URL is provided via `prisma.config.cjs` for Migrate and
-  // overridden at runtime when constructing `PrismaClient` using
-  // `new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } })`.
+  url = env("DATABASE_URL")
 }
 
 model Store {
