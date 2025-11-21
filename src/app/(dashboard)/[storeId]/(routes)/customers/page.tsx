@@ -70,12 +70,24 @@ export default function CustomersPage() {
   }, [fetchCustomers]);
 
   const onEdit = useCallback((customer: CustomersColumn) => {
+    // prevent editing inferred customers created from orders fallback
+    if (typeof customer.id === 'string' && customer.id.startsWith('order:')) {
+      toast.error('This customer is inferred from an order and cannot be edited here');
+      return;
+    }
+
     setSelectedCustomer(customer);
     setOpen(true);
   }, []);
 
   const onDelete = useCallback((customerId: string) => {
-    setSelectedCustomer(customers.find(c => c.id === customerId) || null);
+    const customer = customers.find(c => c.id === customerId) || null;
+    if (customer && typeof customer.id === 'string' && customer.id.startsWith('order:')) {
+      toast.error('This customer is inferred from an order and cannot be deleted');
+      return;
+    }
+
+    setSelectedCustomer(customer);
     setDeleteOpen(true);
   }, [customers]);
 
@@ -127,7 +139,14 @@ export default function CustomersPage() {
         loading={loading}
       />
       <CustomerForm 
-        initialData={selectedCustomer}
+        initialData={selectedCustomer ? {
+          name: selectedCustomer.name,
+          email: selectedCustomer.email ?? "",
+          role: selectedCustomer.role,
+          address: selectedCustomer.address ?? undefined,
+          phone: selectedCustomer.phone ?? undefined,
+          gender: selectedCustomer.gender ?? undefined,
+        } : null}
         isOpen={open}
         onClose={() => {
           setOpen(false);
@@ -143,7 +162,7 @@ export default function CustomersPage() {
           <Separator />
             {!loading ? (
               <DataTable 
-                searchKey="email" 
+                searchKey="name" 
                 columns={columns} 
                 data={customers}
                 meta={{

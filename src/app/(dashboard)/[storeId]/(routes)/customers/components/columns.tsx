@@ -21,12 +21,12 @@ import {
 export type CustomersColumn = {
   id: string
   name: string
-  email: string
+  email?: string | null
   address?: string | null
   phone?: string | null
   gender?: string | null
   role?: "CUSTOMER" | "ADMIN"
-  createdAt: string
+  createdAt?: string | null
 }
 
 interface CellActionsProps {
@@ -40,6 +40,8 @@ const CellActions: React.FC<CellActionsProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const isInferred = typeof data.id === 'string' && data.id.startsWith('order:');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -50,13 +52,13 @@ const CellActions: React.FC<CellActionsProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onEdit(data)}>
+        <DropdownMenuItem onClick={() => !isInferred && onEdit(data)} disabled={isInferred}>
           <Edit className="mr-2 h-4 w-4" />
-          Edit
+          {isInferred ? 'Cannot edit' : 'Edit'}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onDelete(data.id)}>
+        <DropdownMenuItem onClick={() => !isInferred && onDelete(data.id)} disabled={isInferred}>
           <Trash className="mr-2 h-4 w-4" />
-          Delete
+          {isInferred ? 'Cannot delete' : 'Delete'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -90,7 +92,12 @@ export const columns: ColumnDef<CustomersColumn>[] = [
   {
     accessorKey: "createdAt",
     header: "Created At",
-    cell: ({ row }) => format(new Date(row.getValue("createdAt")), "MMMM d, yyyy"),
+    cell: ({ row }) => {
+      const val = row.getValue("createdAt");
+      if (!val) return "";
+      // Ensure the value passed to Date is a string/number/date
+      return format(new Date(String(val)), "MMMM d, yyyy");
+    },
   },
   {
     id: "actions",

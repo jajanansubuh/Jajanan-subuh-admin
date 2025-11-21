@@ -14,6 +14,7 @@ export async function GET(
       return NextResponse.json({ error: 'Store id dibutuhkan' }, { status: 400 });
     }
 
+    // Fetch persisted users for this store
     const users = await prismadb.user.findMany({
       where: { storeId },
       orderBy: {
@@ -21,7 +22,44 @@ export async function GET(
       }
     });
 
-    return NextResponse.json(users);
+    // Also fetch customer names that appear on orders as a fallback
+    // (some customers may have placed orders without having a user record)
+    const orders = await prismadb.order.findMany({
+      where: {
+        storeId,
+        NOT: { customerName: null }
+      },
+      select: {
+        customerName: true,
+        address: true,
+        createdAt: true
+      }
+    });
+
+    const existingNames = new Set(users.map((u: { name?: string | null }) => (u.name || '').trim()));
+
+    const inferredFromOrders: Array<Record<string, unknown>> = [];
+    const seen = new Set<string>();
+
+    for (const o of orders) {
+      const name = o.customerName?.trim();
+      if (!name) continue;
+      if (existingNames.has(name)) continue;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      inferredFromOrders.push({
+        id: `order:${encodeURIComponent(name)}`,
+        name,
+        email: null,
+        phone: null,
+        address: o.address ?? null,
+        role: 'CUSTOMER',
+        createdAt: o.createdAt ?? null,
+      });
+    }
+
+    // Return persisted users first, then inferred customers from orders
+    return NextResponse.json([...users, ...inferredFromOrders]);
   } catch (error) {
     console.log('[CUSTOMERS_GET]', error);
     // In development, include the error message in the JSON to aid debugging.
