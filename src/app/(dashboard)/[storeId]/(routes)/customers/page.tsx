@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { DataTable } from "@/components/ui/data-table";
 import { Heading } from "@/components/ui/heading";
@@ -7,11 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { CustomerForm, columns, CustomersColumn } from "./components";
 import { AlertModal } from "@/components/modals/alert-modal";
 
-export default function CustomersPage({
-  params
-}: {
-  params: { storeId: string } | Promise<{ storeId: string }>
-}) {
+export default function CustomersPage() {
+  const params = useParams();
+  const storeIdParam = params?.storeId as string;
   const [storeId, setStoreId] = useState<string>("");
   const [customers, setCustomers] = useState<Array<CustomersColumn>>([]);
   const [loading, setLoading] = useState(true);
@@ -20,28 +19,12 @@ export default function CustomersPage({
   const [selectedCustomer, setSelectedCustomer] = useState<CustomersColumn | null>(null);
 
   useEffect(() => {
-    void (async () => {
-      const resolvedParams = await params;
-      let resolvedStoreId = resolvedParams?.storeId;
-
-      // Fallback: if params didn't provide storeId (deployed environment mismatch),
-      // try extracting it from the URL path: .../<storeId>/customers
-      if (!resolvedStoreId && typeof window !== 'undefined') {
-        const parts = window.location.pathname.split('/').filter(Boolean);
-        const customersIndex = parts.indexOf('customers');
-        if (customersIndex > 0) {
-          resolvedStoreId = parts[customersIndex - 1];
-        } else {
-          // fallback to first segment if structure differs
-          resolvedStoreId = parts[0] || '';
-        }
-      }
-
-      setStoreId(resolvedStoreId || '');
+    if (storeIdParam) {
+      setStoreId(storeIdParam as string);
       // eslint-disable-next-line no-console
-      console.log('CUSTOMERS_PAGE resolved storeId=', resolvedStoreId, 'fetchUrl=', `/api/stores/${resolvedStoreId}/customers`);
-    })();
-  }, [params]);
+      console.log('CUSTOMERS_PAGE resolved storeId=', storeIdParam, 'fetchUrl=', `/api/stores/${storeIdParam}/customers`);
+    }
+  }, [storeIdParam]);
 
   const fetchCustomers = useCallback(async () => {
     if (!storeId) return;
