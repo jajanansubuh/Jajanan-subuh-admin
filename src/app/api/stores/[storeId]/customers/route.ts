@@ -67,7 +67,7 @@ export async function GET(
     } else {
       // Fallback: query Postgres directly to gather the same data
       const { Client } = await import('pg');
-      const client = new Client({ connectionString: (process.env as any).DATABASE_URL });
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
       try {
         await client.connect();
         const usersRes = await client.query(
@@ -119,7 +119,7 @@ export async function GET(
     // without exposing details to all clients. Set `DEBUG_SECRET` in Vercel.
     try {
       const debugHeader = req.headers.get('x-debug');
-      const debugSecret = (process.env as any).DEBUG_SECRET;
+      const debugSecret = process.env.DEBUG_SECRET;
       if (debugHeader && debugSecret && debugHeader === debugSecret) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error && error.stack ? error.stack : undefined;
