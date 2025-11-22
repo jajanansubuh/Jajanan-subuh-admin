@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 import { BannerClient } from "./components/client";
 import { BannerColumn } from "./components/columns";
+import type { Banner } from "../../../../../../generated/prisma";
 
 import { format } from "date-fns";
 
@@ -19,7 +20,7 @@ const BannersPage = async ({
     },
   });
 
-  const formattedBanners: BannerColumn[] = banners.map((item: { id: string; label: string; createdAt: Date | string }) => ({
+  const formattedBanners: BannerColumn[] = banners.map((item: Banner) => ({
     id: item.id,
     label: item.label,
     createdAt: format(item.createdAt, "MMM do, yyyy"),

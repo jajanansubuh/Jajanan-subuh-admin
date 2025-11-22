@@ -4,6 +4,7 @@ import { ProductColumn } from "./components/columns";
 
 import { format } from "date-fns";
 import { formatter } from "@/lib/utils";
+import type { Product, Category } from "../../../../../../generated/prisma";
 
 const ProductsPage = async ({
   params,
@@ -23,30 +24,16 @@ const ProductsPage = async ({
     },
   });
 
-  const formattedProducts: ProductColumn[] = products.map((item: { id: string; name?: string | null; isFeatured?: boolean; isArchived?: boolean; price: { toNumber: () => number } | number | string; quantity?: number; category: { name: string }; createdAt: Date | string }) => {
-    let priceNumber: number;
-    if (
-      typeof item.price === 'object' &&
-      item.price !== null &&
-      'toNumber' in item.price &&
-      typeof (item.price as { toNumber?: unknown }).toNumber === 'function'
-    ) {
-      priceNumber = (item.price as { toNumber: () => number }).toNumber();
-    } else {
-      priceNumber = Number(item.price ?? 0);
-    }
-
-    return {
-      id: item.id,
-      name: item.name ?? "",
-      isFeatured: item.isFeatured,
-      isArchived: item.isArchived,
-      price: formatter.format(priceNumber),
-      quantity: String(item.quantity ?? 0),
-      category: item.category.name,
-      createdAt: format(item.createdAt, "MMM do, yyyy"),
-    };
-  });
+  const formattedProducts: ProductColumn[] = products.map((item: Product & { category: Category }) => ({
+    id: item.id,
+    name: item.name ?? "",
+    isFeatured: item.isFeatured,
+    isArchived: item.isArchived,
+    price: formatter.format(item.price.toNumber()),
+    quantity: String(item.quantity ?? 0),
+    category: item.category.name,
+    createdAt: format(item.createdAt, "MMM do, yyyy"),
+  }));
 
   return (
     <div className="flex-col">

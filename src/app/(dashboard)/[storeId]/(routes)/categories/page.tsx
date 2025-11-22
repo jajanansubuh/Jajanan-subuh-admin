@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 import { CategoryClient } from "./components/client";
 import { CategoryColumn } from "./components/columns";
+import type { Category, Banner } from "../../../../../../generated/prisma";
 
 import { format } from "date-fns";
 
@@ -22,7 +23,7 @@ const CategoriesPage = async ({
     },
   });
 
-  const formattedCategories: CategoryColumn[] = categories.map((item: { id: string; name: string; banner: { label: string }; createdAt: Date | string }) => ({
+  const formattedCategories: CategoryColumn[] = categories.map((item: Category & { banner: Banner }) => ({
     id: item.id,
     name: item.name,
     bannerLabel: item.banner.label,

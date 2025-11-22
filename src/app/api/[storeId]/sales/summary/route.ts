@@ -41,7 +41,7 @@ export async function GET(
       { month: string; revenue: number; count: number }
     >();
 
-    orders.forEach((o: { createdAt: string | Date; total?: number | string }) => {
+    orders.forEach((o) => {
       const d = new Date(o.createdAt);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
         2,

@@ -102,7 +102,8 @@ export async function GET(
     try {
       new URL(urlForParse);
     } catch {
-      const port = process.env.PORT || "3000";
+      const env = process.env as unknown as Record<string, string | undefined>;
+      const port = env['PORT'] || "3000";
       urlForParse = `http://localhost:${port}${urlForParse}`;
     }
     const { searchParams } = new URL(urlForParse);
@@ -148,10 +149,9 @@ export async function GET(
     }
 
     // Attach `sold` field to product objects for the client
-    type ProductLike = { id: string } & Record<string, unknown>;
-    const productsWithSold = products.map((p: ProductLike) => ({
+    const productsWithSold = products.map((p: (typeof products)[number]) => ({
       ...p,
-      sold: soldMap[p.id as string] ?? 0,
+      sold: soldMap[p.id] ?? 0,
     }));
 
     // Hitung rating rata-rata dan jumlah ulasan per produk
@@ -179,11 +179,13 @@ export async function GET(
       };
     }
 
-    const productsWithSoldAndRating = productsWithSold.map((p: ProductLike) => ({
-      ...p,
-      avgRating: ratingMap[p.id as string]?.avgRating ?? 0,
-      ratingCount: ratingMap[p.id as string]?.ratingCount ?? 0,
-    }));
+    const productsWithSoldAndRating = productsWithSold.map(
+      (p: (typeof productsWithSold)[number]) => ({
+        ...p,
+        avgRating: ratingMap[p.id]?.avgRating ?? 0,
+        ratingCount: ratingMap[p.id]?.ratingCount ?? 0,
+      })
+    );
 
     return NextResponse.json(productsWithSoldAndRating);
   } catch (error) {

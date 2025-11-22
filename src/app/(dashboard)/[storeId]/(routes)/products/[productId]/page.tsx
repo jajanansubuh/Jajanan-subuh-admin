@@ -4,6 +4,7 @@ import db from "@/lib/db";
 // so import via the src alias to resolve to `./generated/prisma`.
 import { ProductForm } from "./components/product-form";
 import ReviewsListClient from "./components/reviews-list-client";
+import type { Image, Category } from "../../../../../../../generated/prisma";
 
 const ProductPage = async ({
   params,
@@ -74,12 +75,12 @@ const ProductPage = async ({
           updatedAt: product.updatedAt
             ? product.updatedAt.toISOString()
             : product.updatedAt,
-          images: product.images?.map((img: { id: string; url: string; productId?: string; createdAt?: Date | string; updatedAt?: Date | string }) => ({ ...img })),
+          images: product.images?.map((img: Image) => ({ ...img })),
         };
       })()
     : null;
 
-  const safeCategories = categories.map((c: { createdAt?: Date | string; updatedAt?: Date | string }) => ({
+  const safeCategories = categories.map((c: Category) => ({
     ...c,
     createdAt: (c.createdAt as Date | undefined)
       ? (c.createdAt as Date).toISOString()

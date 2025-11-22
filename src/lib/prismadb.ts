@@ -1,28 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
-declare global {
-  // attach a Prisma client to the globalThis to prevent exhausting connections
-  // during hot-reload in development
-  // eslint-disable-next-line vars-on-top, no-var
-  var __prismaClient: PrismaClient | undefined;
-}
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const globalForPrisma = globalThis as unknown as { __prismaClient?: PrismaClient };
-
-const getPrismaOptions = () => {
-  const url = process.env.DATABASE_URL as string | undefined;
-  if (url) {
-    return { datasources: { db: { url } } };
+if (!globalForPrisma.prisma) {
+  // Override datasource URL at runtime so PrismaClient can connect even when
+  // schema.prisma does not include the `url` property (Prisma v6+ recommendation).
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    globalForPrisma.prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
+  } else {
+    // Fall back to default constructor; this will work in environments where
+    // the schema still provides the URL or Prisma is configured differently.
+    globalForPrisma.prisma = new PrismaClient();
   }
-  return undefined;
-};
-
-if (!globalForPrisma.__prismaClient) {
-  globalForPrisma.__prismaClient = new PrismaClient(getPrismaOptions() as any);
 }
 
-const prisma = globalForPrisma.__prismaClient as PrismaClient;
-if (process.env.NODE_ENV !== 'production') globalForPrisma.__prismaClient = prisma;
+const prismadb = globalForPrisma.prisma;
 
-export default prisma;
+export default prismadb;

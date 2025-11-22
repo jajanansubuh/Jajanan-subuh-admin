@@ -31,38 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-// Minimal local types to avoid relying on generated Prisma client types during build
-interface Image {
-  id: string;
-  productId?: string;
-  url: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
-
-interface Product {
-  id: string;
-  storeId?: string;
-  categoryId?: string;
-  name?: string | null;
-  price?: number | string;
-  isFeatured?: boolean;
-  isArchived?: boolean;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  description?: string | null;
-  quantity?: number;
-  images?: Image[];
-}
-
-interface Category {
-  id: string;
-  storeId?: string;
-  bannerId?: string;
-  name: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+import {
+  Category,
+  Image,
+  Product,
+} from "../../../../../../../../generated/prisma";
 // ...existing code...
 import ImageUpload from "@/components/ui/image-upload";
 
