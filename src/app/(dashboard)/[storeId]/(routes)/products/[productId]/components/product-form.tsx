@@ -31,11 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
+import type {
   Category,
   Image,
   Product,
-} from "../../../../../../../../generated/prisma";
+} from '@prisma/client';
 // ...existing code...
 import ImageUpload from "@/components/ui/image-upload";
 

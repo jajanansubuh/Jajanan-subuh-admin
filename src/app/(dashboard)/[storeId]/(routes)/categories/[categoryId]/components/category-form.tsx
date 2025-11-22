@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Banner, Category } from "../../../../../../../../generated/prisma";
+import type { Banner, Category } from '@prisma/client';
 
 interface CategoryFormProps {
   initialData: Category | null;
