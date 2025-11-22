@@ -1,11 +1,28 @@
 import { NextResponse } from "next/server";
+import type { PrismaClient } from '@prisma/client';
+
+type UserRow = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  role?: string | null;
+  createdAt?: string | Date | null;
+};
+
+type OrderRow = {
+  customerName?: string | null;
+  address?: string | null;
+  createdAt?: string | Date | null;
+};
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    let prismadb: any | undefined;
+    let prismadb: PrismaClient | undefined;
     try {
       const imported = await import("@/lib/prismadb");
       prismadb = imported?.default;
@@ -23,8 +40,8 @@ export async function GET(
     }
 
     // Fetch persisted users for this store (use Prisma if available, otherwise fallback to pg)
-    let users: any[] = [];
-    let orders: any[] = [];
+    let users: UserRow[] = [];
+    let orders: OrderRow[] = [];
 
     if (prismadb) {
       users = await prismadb.user.findMany({
@@ -69,7 +86,7 @@ export async function GET(
       }
     }
 
-    const existingNames = new Set(users.map((u: { name?: string | null }) => (u.name || '').trim()));
+    const existingNames = new Set(users.map((u) => (u.name || '').trim()));
 
     const inferredFromOrders: Array<Record<string, unknown>> = [];
     const seen = new Set<string>();
@@ -121,7 +138,8 @@ export async function POST(
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { default: prismadb } = await import("@/lib/prismadb");
+    const imported = await import("@/lib/prismadb");
+    const prismadb = imported?.default as PrismaClient;
     const { storeId } = await params;
 
     if (!storeId) {
