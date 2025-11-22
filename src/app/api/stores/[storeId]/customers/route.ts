@@ -5,7 +5,15 @@ export async function GET(
   { params }: { params: Promise<{ storeId: string }> }
 ) {
   try {
-    const { default: prismadb } = await import("@/lib/prismadb");
+    let prismadb: any | undefined;
+    try {
+      const imported = await import("@/lib/prismadb");
+      prismadb = imported?.default;
+    } catch (impErr) {
+      console.error('[CUSTOMERS_GET] prismadb import failed at runtime:', String(impErr));
+      prismadb = undefined;
+    }
+
     const { storeId } = await params;
     // Temporary debug log to trace incoming requests and storeId
     console.log('[CUSTOMERS_GET_REQUEST] storeId=', storeId);
@@ -14,27 +22,52 @@ export async function GET(
       return NextResponse.json({ error: 'Store id dibutuhkan' }, { status: 400 });
     }
 
-    // Fetch persisted users for this store
-    const users = await prismadb.user.findMany({
-      where: { storeId },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    // Fetch persisted users for this store (use Prisma if available, otherwise fallback to pg)
+    let users: any[] = [];
+    let orders: any[] = [];
 
-    // Also fetch customer names that appear on orders as a fallback
-    // (some customers may have placed orders without having a user record)
-    const orders = await prismadb.order.findMany({
-      where: {
-        storeId,
-        NOT: { customerName: null }
-      },
-      select: {
-        customerName: true,
-        address: true,
-        createdAt: true
+    if (prismadb) {
+      users = await prismadb.user.findMany({
+        where: { storeId },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      // Also fetch customer names that appear on orders as a fallback
+      // (some customers may have placed orders without having a user record)
+      orders = await prismadb.order.findMany({
+        where: {
+          storeId,
+          NOT: { customerName: null }
+        },
+        select: {
+          customerName: true,
+          address: true,
+          createdAt: true
+        }
+      });
+    } else {
+      // Fallback: query Postgres directly to gather the same data
+      const { Client } = await import('pg');
+      const client = new Client({ connectionString: (process.env as any).DATABASE_URL });
+      try {
+        await client.connect();
+        const usersRes = await client.query(
+          'SELECT id, name, email, phone, address, role, "createdAt" FROM "User" WHERE "storeId" = $1 ORDER BY "createdAt" DESC',
+          [storeId]
+        );
+        users = usersRes.rows || [];
+
+        const ordersRes = await client.query(
+          'SELECT "customerName", address, "createdAt" FROM "Order" WHERE "storeId" = $1 AND "customerName" IS NOT NULL',
+          [storeId]
+        );
+        orders = ordersRes.rows || [];
+      } finally {
+        await client.end();
       }
-    });
+    }
 
     const existingNames = new Set(users.map((u: { name?: string | null }) => (u.name || '').trim()));
 
@@ -69,7 +102,7 @@ export async function GET(
     // without exposing details to all clients. Set `DEBUG_SECRET` in Vercel.
     try {
       const debugHeader = req.headers.get('x-debug');
-      const debugSecret = process.env.DEBUG_SECRET;
+      const debugSecret = (process.env as any).DEBUG_SECRET;
       if (debugHeader && debugSecret && debugHeader === debugSecret) {
         const message = error instanceof Error ? error.message : String(error);
         const stack = error instanceof Error && error.stack ? error.stack : undefined;

@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 if (!globalForPrisma.prisma) {
   // Override datasource URL at runtime so PrismaClient can connect even when
   // schema.prisma does not include the `url` property (Prisma v6+ recommendation).
-  const dbUrl = process.env.DATABASE_URL;
+  const dbUrl = (process.env as any).DATABASE_URL;
   if (dbUrl) {
     globalForPrisma.prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
   } else {
