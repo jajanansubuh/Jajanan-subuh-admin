@@ -30,7 +30,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Banner, Category } from '@prisma/client';
+// Minimal local types to avoid depending on generated Prisma client types
+interface Banner {
+  id: string;
+  label: string;
+  imageUrl: string;
+}
+
+interface Category {
+  id: string;
+  storeId?: string;
+  bannerId?: string;
+  name: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
 
 interface CategoryFormProps {
   initialData: Category | null;

@@ -24,7 +24,16 @@ import { useParams, useRouter } from "next/navigation";
 import { AlertModal } from "@/components/modals/alert-modal";
 // ...existing code...
 import ImageUpload from "@/components/ui/image-upload";
-import type { Banner } from '@prisma/client';
+
+// Minimal local Banner type to avoid relying on generated Prisma client types
+interface Banner {
+  id: string;
+  storeId?: string;
+  label: string;
+  imageUrl: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
 
 interface BannerFormProps {
   initialData: Banner | null;
