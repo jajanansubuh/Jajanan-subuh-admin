@@ -19,7 +19,7 @@ const BannersPage = async ({
     },
   });
 
-  const formattedBanners: BannerColumn[] = banners.map((item) => ({
+  const formattedBanners: BannerColumn[] = banners.map((item: { id: string; label: string; createdAt: Date | string }) => ({
     id: item.id,
     label: item.label,
     createdAt: format(item.createdAt, "MMM do, yyyy"),

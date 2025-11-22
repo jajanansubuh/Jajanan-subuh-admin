@@ -130,7 +130,7 @@ export async function GET(
     });
 
     // Hitung jumlah terjual per produk dari tabel OrderItem
-    const productIds = products.map((p) => p.id);
+    const productIds = products.map((p: { id: string }) => p.id);
 
     const soldRows = await db.orderItem.groupBy({
       by: ["productId"],
@@ -148,9 +148,10 @@ export async function GET(
     }
 
     // Attach `sold` field to product objects for the client
-    const productsWithSold = products.map((p) => ({
+    type ProductLike = { id: string } & Record<string, unknown>;
+    const productsWithSold = products.map((p: ProductLike) => ({
       ...p,
-      sold: soldMap[p.id] ?? 0,
+      sold: soldMap[p.id as string] ?? 0,
     }));
 
     // Hitung rating rata-rata dan jumlah ulasan per produk
@@ -178,10 +179,10 @@ export async function GET(
       };
     }
 
-    const productsWithSoldAndRating = productsWithSold.map((p) => ({
+    const productsWithSoldAndRating = productsWithSold.map((p: ProductLike) => ({
       ...p,
-      avgRating: ratingMap[p.id]?.avgRating ?? 0,
-      ratingCount: ratingMap[p.id]?.ratingCount ?? 0,
+      avgRating: ratingMap[p.id as string]?.avgRating ?? 0,
+      ratingCount: ratingMap[p.id as string]?.ratingCount ?? 0,
     }));
 
     return NextResponse.json(productsWithSoldAndRating);

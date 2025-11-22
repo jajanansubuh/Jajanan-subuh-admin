@@ -74,12 +74,12 @@ const ProductPage = async ({
           updatedAt: product.updatedAt
             ? product.updatedAt.toISOString()
             : product.updatedAt,
-          images: product.images?.map((img) => ({ ...img })),
+          images: product.images?.map((img: { id: string; url: string; productId?: string; createdAt?: Date | string; updatedAt?: Date | string }) => ({ ...img })),
         };
       })()
     : null;
 
-  const safeCategories = categories.map((c) => ({
+  const safeCategories = categories.map((c: { createdAt?: Date | string; updatedAt?: Date | string }) => ({
     ...c,
     createdAt: (c.createdAt as Date | undefined)
       ? (c.createdAt as Date).toISOString()

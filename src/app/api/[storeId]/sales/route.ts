@@ -268,7 +268,7 @@ export async function GET(
       take: qPageSize,
     });
 
-    const totalRevenue = orders.reduce((s, o) => s + Number(o.total), 0);
+    const totalRevenue = orders.reduce((s: number, o: { total?: number | string }) => s + Number(o.total ?? 0), 0);
 
     return NextResponse.json({
       ok: true,
