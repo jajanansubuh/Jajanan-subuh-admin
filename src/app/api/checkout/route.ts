@@ -468,8 +468,8 @@ export async function POST(req: Request) {
       const createData = orderData as unknown as OrderUncheckedCreateInputLocal;
       // adapt createData to the tx.order.create parameter type without importing Prisma types
   // Cast createData to the generated Prisma unchecked input type which matches nested createMany
-  // adapt createData to the generated Prisma unchecked input type
-  const order = await tx.order.create({ data: createData as unknown as Prisma.OrderUncheckedCreateInput });
+  // adapt createData to the local unchecked input type that matches nested createMany
+  const order = await tx.order.create({ data: createData as unknown as OrderUncheckedCreateInputLocal });
 
       return order;
     });
