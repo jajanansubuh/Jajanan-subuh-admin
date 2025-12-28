@@ -27,13 +27,13 @@ export async function GET(
     }
 
     // fetch orders in range
-    const orders = await db.order.findMany({
+    const orders = (await db.order.findMany({
       where: {
         storeId,
         createdAt: { gte: fromDate, lte: toDate },
       },
       select: { createdAt: true, total: true },
-    });
+    })) as Array<{ createdAt: Date; total?: unknown }>;
 
     // aggregate per month (YYYY-MM)
     const map = new Map<
@@ -48,7 +48,20 @@ export async function GET(
         "0"
       )}`;
       const cur = map.get(key) ?? { month: key, revenue: 0, count: 0 };
-      cur.revenue += Number(o.total ?? 0);
+      // normalize total which may be Decimal-like from Prisma or number
+      let totalValue = 0;
+      if (typeof o.total === "number") {
+        totalValue = o.total as number;
+      } else if (
+        typeof o.total === "object" &&
+        o.total !== null &&
+        typeof (o.total as { toNumber?: unknown }).toNumber === "function"
+      ) {
+        totalValue = Number((o.total as { toNumber: () => number }).toNumber());
+      } else {
+        totalValue = Number(o.total ?? 0);
+      }
+      cur.revenue += totalValue;
       cur.count += 1;
       map.set(key, cur);
     });

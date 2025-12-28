@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { Prisma } from "@prisma/client";
+
+// Local minimal shape of product objects returned from DB for typing in this file
+type ProductLike = {
+  id: string;
+  name?: string | null;
+  quantity?: unknown;
+  price?: unknown;
+  storeId?: string | null;
+};
 // local minimal type for create payload (avoid importing generated types to prevent TS path issues)
 type OrderUncheckedCreateInputLocal = {
   id?: string;
@@ -222,7 +231,7 @@ export async function POST(req: Request) {
     console.log("[ADMIN_CHECKOUT] products found from DB:", products);
 
     // If some products not found by id, try to lookup by provided name fallback
-    const foundIds = new Set(products.map((p) => p.id));
+    const foundIds = new Set(products.map((p: ProductLike) => p.id));
     const missing = items.filter((it) => !foundIds.has(it.productId));
     if (missing.length > 0) {
       // for each missing item, try a case-insensitive lookup by provided name
@@ -256,15 +265,15 @@ export async function POST(req: Request) {
     );
     console.log(
       "[ADMIN_CHECKOUT] products found:",
-      products.map((p) => ({ id: p.id, name: p.name, qty: p.quantity }))
+      products.map((p: ProductLike) => ({ id: p.id, name: p.name, qty: p.quantity }))
     );
 
     // Build resolved items: for each requested item, try to find product by id OR by name.
     const resolved = items.map((it) => {
       // DEBUG: log pencocokan produk untuk setiap item
       console.log("[ADMIN_CHECKOUT] resolving item:", it);
-      const byId = products.find((x) => x.id === it.productId);
-      const byName = products.find((x) =>
+      const byId = products.find((x: ProductLike) => x.id === it.productId);
+      const byName = products.find((x: ProductLike) =>
         it.name
           ? String(x.name).trim().toLowerCase() ===
             String(it.name).trim().toLowerCase()
