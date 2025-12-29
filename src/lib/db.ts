@@ -1,4 +1,4 @@
-import { PrismaClient } from "../../generated/prisma/client";
+import { PrismaClient } from "../../generated/prisma";
 
 // Create and export a single PrismaClient instance.
 // In development hot-reloading can create multiple instances, so we cache
